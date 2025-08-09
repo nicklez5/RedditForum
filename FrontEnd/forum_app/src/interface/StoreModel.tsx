@@ -1,0 +1,38 @@
+import { createStore, persist } from "easy-peasy";
+import {userModel, UserModel} from "./UserModel";
+import {adminModel, AdminModel} from "./AdminModel";
+import {postModel, PostModel} from "./PostModel";
+import {threadModel, ThreadModel} from "./ThreadModel";
+import {forumModel, ForumModel} from "./ForumModel";
+import { notificationModel, NotificationModel } from "./Notification";
+import { MessageModel, messageModel } from "./MessageModel";
+import { profileModel, ProfileModel } from "./ProfileModel";
+import { chatStoreModel, ChatStoreModel } from "./ChatModel";
+export interface StoreModel {
+    user: UserModel;
+    admin: AdminModel;
+    post: PostModel;
+    thread: ThreadModel;
+    forum: ForumModel;
+    notification: NotificationModel;
+    message: MessageModel;
+    profile: ProfileModel;
+    chat: ChatStoreModel
+}
+const store = createStore<StoreModel>(
+    persist({
+        user: userModel,
+        admin: adminModel,
+        post: postModel,
+        thread: threadModel,
+        forum: forumModel,
+        notification: notificationModel,
+        message: messageModel,
+        profile: profileModel,
+        chat: chatStoreModel,
+    },
+    {
+        storage: localStorage
+    })
+)
+export default store;

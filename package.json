@@ -1,0 +1,8 @@
+{
+  "name": "heroku-root-build",
+  "private": true,
+  "engines": { "node": "20.x", "npm": "10.x" },
+  "scripts": {
+    "heroku-postbuild": "npm install --prefix FrontEnd && npm run build --prefix FrontEnd"
+  }
+}

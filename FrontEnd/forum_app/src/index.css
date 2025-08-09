@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  font-family: Avantgarde, TeX Gyre Adventor, URW Gothic L, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+ 
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace,Noto Sans, sans-serif;
+}
+
+.card{
+  background-color: #1A1A1B;
+  color: white;
+  border-radius: 6px;
+}
+[data-theme="dark"] .card{
+  background-color: #79797c32;
+  color: white;
+}
+.card:hover {
+  background-color: #79797c32;
+  color: white;
+}
+[data-theme="light"] .card:hover{
+  background-color: #79797c32;
+  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, 0.551);
+  color: black;
+}
+[data-theme="dark"] .card:hover{
+  background-color: "black";
+  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, 0.551);
+  color: white;
+}
