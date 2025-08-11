@@ -1,6 +1,6 @@
 # build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
+WORKDIR /MyApi
 COPY . .
 RUN dotnet restore MyApi.csproj
 RUN dotnet publish MyApi.csproj -c Release -o /app
