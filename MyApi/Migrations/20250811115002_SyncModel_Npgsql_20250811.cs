@@ -187,13 +187,13 @@ namespace MyApi.Migrations
                 oldMaxLength: 256,
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "DateJoined",
-                table: "Users",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Users""
+                ALTER COLUMN ""DateJoined""
+                TYPE timestamptz
+                USING (NULLIF(""DateJoined"", '')::timestamptz);
+                ");
+            
 
             migrationBuilder.AlterColumn<string>(
                 name: "ConcurrencyStamp",
@@ -215,14 +215,13 @@ namespace MyApi.Migrations
                 oldMaxLength: 500,
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "BannedAt",
-                table: "Users",
-                type: "timestamp with time zone",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "TEXT",
-                oldNullable: true);
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Users""
+                ALTER COLUMN ""BannedAt""
+                TYPE timestamptz
+                USING (NULLIF(""BannedAt"", '')::timestamptz);
+                ");
+            
 
             migrationBuilder.AlterColumn<int>(
                 name: "AccessFailedCount",
