@@ -4,34 +4,40 @@ using Npgsql;
 
 namespace MyApi.Data
 {
-    public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+    // MyApi/Data/DesignTimeDbContextFactory.cs
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+{
+    public ApplicationDbContext CreateDbContext(string[] args)
     {
-        public ApplicationDbContext CreateDbContext(string[] args)
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>();
+
+        // Always use Postgres for scaffolding migrations
+        var cs = Environment.GetEnvironmentVariable("DATABASE_URL")
+                 ?? "Host=localhost;Port=5432;Database=app_dev;Username=postgres;Password=postgres";
+
+        var uri = cs.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+            ? new Uri(cs)
+            : null;
+
+        if (uri != null)
         {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>();
-            var dbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-            if (!string.IsNullOrWhiteSpace(dbUrl))
+            var u = uri.UserInfo.Split(':', 2);
+            var b = new Npgsql.NpgsqlConnectionStringBuilder
             {
-                var uri = new Uri(dbUrl);
-                var userInfo = uri.UserInfo.Split(':');
-                var builder = new Npgsql.NpgsqlConnectionStringBuilder
-                {
-                    Host = uri.Host,
-                    Port = uri.Port,
-                    Username = userInfo[0],
-                    Password = userInfo.Length > 1 ? userInfo[1] : "",
-                    Database = uri.AbsolutePath.TrimStart('/'),
-                    SslMode =  Npgsql.SslMode.Require,
-                    TrustServerCertificate = true
-                };
-                options.UseNpgsql(builder.ConnectionString);
-            }
-            else
-            {
-                options.UseSqlite("Data Source=app.db"); // <-- local dev
-            }
-            return new ApplicationDbContext(options.Options);
+                Host = uri.Host, Port = uri.Port,
+                Username = u[0], Password = u.Length > 1 ? u[1] : "",
+                Database = uri.AbsolutePath.Trim('/'),
+                SslMode = Npgsql.SslMode.Disable
+            };
+            options.UseNpgsql(b.ConnectionString);
         }
-        
+        else
+        {
+            options.UseNpgsql(cs); // regular Npgsql connection string
+        }
+
+        return new ApplicationDbContext(options.Options);
     }
+}
+
 }
