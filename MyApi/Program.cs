@@ -23,28 +23,49 @@ builder.Services.AddScoped<ThreadService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
-var dbUrl = builder.Configuration["DATABASE_URL"] ?? Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrWhiteSpace(dbUrl))
-{
-    var uri = new Uri(dbUrl);
-    var userInfo = uri.UserInfo.Split(':');
-    var csb = new NpgsqlConnectionStringBuilder
+var dbUrl = builder.Configuration["DATABASE_URL"] 
+         ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+
+    if (!string.IsNullOrWhiteSpace(dbUrl))
     {
-        Host = uri.Host,
-        Port = uri.Port,
-        Username = userInfo[0],
-        Password = userInfo[1],
-        Database = uri.AbsolutePath.TrimStart('/'),
-        SslMode = SslMode.Require,
-        TrustServerCertificate = true
-    };
-    builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(csb.ConnectionString));
-}
-else
-{
-    builder.Services.AddDbContext<ApplicationDbContext>(o =>
-        o.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-}
+        var uri = new Uri(dbUrl);
+
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var username = Uri.UnescapeDataString(userInfo[0]);
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+
+        var csb = new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort ? 5432 : uri.Port,
+            Username = username,
+            Password = password,
+            Database = uri.AbsolutePath.TrimStart('/'),
+            // Respect existing query params (e.g., sslmode=require)
+        };
+
+        // Copy any query params from the URL (sslmode, pooling, etc.)
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        foreach (string? key in query.AllKeys)
+        {
+            if (!string.IsNullOrEmpty(key))
+                csb[key] = query[key]; // e.g. csb["Ssl Mode"] = "Require"
+        }
+
+        // If sslmode wasn't present, enforce it in prod
+        if (!csb.TryGetValue("Ssl Mode", out _))
+            csb.SslMode = Npgsql.SslMode.Require;
+
+        builder.Services.AddDbContext<ApplicationDbContext>(o =>
+            o.UseNpgsql(csb.ConnectionString));
+    }
+    else
+    {
+        // Local dev fallback
+        builder.Services.AddDbContext<ApplicationDbContext>(o =>
+            o.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    }
+
 
 
 builder.Services.AddControllers().AddJsonOptions(options =>
