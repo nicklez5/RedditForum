@@ -115,14 +115,12 @@ namespace MyApi.Migrations
                 oldMaxLength: 256,
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<DateTimeOffset>(
-                name: "LockoutEnd",
-                table: "Users",
-                type: "timestamptz",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "TEXT",
-                oldNullable: true);
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Users""
+                ALTER COLUMN ""LockoutEnd""
+                TYPE timestamptz
+                USING (NULLIF(""LockoutEnd"", '')::timestamptz);
+                ");
 
             migrationBuilder.AlterColumn<bool>(
                 name: "LockoutEnabled",
