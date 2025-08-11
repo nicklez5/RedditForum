@@ -5,11 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-  <PropertyGroup>
-  <!-- Resolve absolute path to ../frontend -->
-    <SpaRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../FrontEnd/'))</SpaRoot>
-    <SpaDist>$(SpaRoot)build/</SpaDist>
-  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
@@ -29,15 +25,23 @@
     <PackageReference Include="SendGrid" Version="9.29.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
   </ItemGroup>
-   <Target Name="SpaRestore" BeforeTargets="Build">
-  <Exec WorkingDirectory="$(SpaRoot)" Command="npm ci" />
-</Target>
-<Target Name="SpaBuild" BeforeTargets="PrepareForPublish">
-  <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
-</Target>
-<Target Name="CopySpaFiles" AfterTargets="ComputeFilesToPublish">
-  <ItemGroup><SpaFiles Include="$(SpaDist)**" /></ItemGroup>
-  <Copy SourceFiles="@(SpaFiles)" DestinationFolder="$(PublishDir)wwwroot\%(RecursiveDir)" />
+   <!-- Build React client and copy to wwwroot -->
+<Target Name="BuildClient" AfterTargets="Build"
+        Condition="'$(SkipClientBuild)'!='true' AND Exists('$(MSBuildProjectDirectory)/../FrontEnd/package.json')">
+  <Message Text="Building client in $(MSBuildProjectDirectory)/../FrontEnd" Importance="high" />
+  <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />
+  <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />
+
+  <ItemGroup>
+    <ClientBuildFiles Include="$(MSBuildProjectDirectory)/../FrontEnd/build/**" />
+  </ItemGroup>
+
+  <RemoveDir Directories="$(MSBuildProjectDirectory)/wwwroot" />
+  <MakeDir Directories="$(MSBuildProjectDirectory)/wwwroot" />
+  <Copy
+    SourceFiles="@(ClientBuildFiles)"
+    DestinationFiles="@(ClientBuildFiles->'$(MSBuildProjectDirectory)/wwwroot/%(RecursiveDir)%(Filename)%(Extension)')"
+    SkipUnchangedFiles="true" />
 </Target>
 
 
