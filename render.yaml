@@ -5,10 +5,12 @@ services:
     dockerfilePath: MyApi/Dockerfile
     dockerContext: .
     plan: basic-256mb
-    
+
     healthCheckPath: /
     autoDeploy: true
     envVars:
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: DATABASE_URL
