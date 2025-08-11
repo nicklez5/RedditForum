@@ -127,15 +127,7 @@ using (var scope = app.Services.CreateScope())
     await SeedData.SeedAdminUser(userManager);
 }
 app.UseCors("AllowFrontend");
-app.UseStaticFiles(new StaticFileOptions
-{
-    OnPrepareResponse = ctx =>
-    {
-        var headers = ctx.Context.Response.Headers;
-        headers["Access-Control-Allow-Origin"] = "http://localhost:3000";
-        headers["Vary"] = "Origin";
-    }
-});
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

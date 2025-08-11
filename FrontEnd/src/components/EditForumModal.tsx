@@ -133,7 +133,7 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
                                 >Remove Image</Button>
                             </div>
                         )}
-                        {forum.bannerUrl && <img src={`${`http://localhost:5220${forum.bannerUrl}`}`} alt="icon" style={{maxHeight: "200px", marginBottom: "10px"}}/>}
+                        {forum.bannerUrl && <img src={`${`http://localhost:5220${forum.bannerUrl}`}`} alt="icon" style={{maxHeight: "200px",maxWidth: "450px", marginBottom: "10px"}}/>}
                     </Form.Group>
                     <Form.Check type="checkbox" label="Remove current banner" checked={removeBanner} onChange={(e) => setRemoveBanner(e.target.checked)} />
                 </Modal.Body>
