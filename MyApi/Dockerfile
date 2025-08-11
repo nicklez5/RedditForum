@@ -1,14 +1,17 @@
 # build
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /MyApi
-COPY . .
-RUN dotnet restore MyApi.csproj
-RUN dotnet publish MyApi.csproj -c Release -o /app
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY MySolution.sln ./
+COPY MyApi/MyApi.csproj ./MyApi/
+# (COPY other project csproj files too if referenced)
+RUN dotnet restore ./MySolution.sln
 
-# run
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+COPY . ./
+RUN dotnet publish ./MyApi/MyApi.csproj -c Release -o /app
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app .
-# Render sets $PORT; ASP.NET will bind automatically if you don't override Kestrel URLs.
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
-ENTRYPOINT ["dotnet", "MyApi.dll"]
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
+ENTRYPOINT ["dotnet","MyApi.dll"]
