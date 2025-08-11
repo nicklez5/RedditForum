@@ -570,7 +570,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "IsRead",
                 table: "Notifications",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "boolean");
@@ -622,7 +622,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "IsRead",
                 table: "Messages",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "boolean");
