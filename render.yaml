@@ -5,7 +5,7 @@ services:
     dockerfilePath: MyApi/Dockerfile
     dockerContext: .
     plan: basic-256mb
-    rootDir: .
+    
     healthCheckPath: /
     autoDeploy: true
     envVars:
