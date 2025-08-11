@@ -96,14 +96,21 @@ var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy =>
         policy.RequireRole("Admin"));
-var allowedOrigins = new[] {
-    "http://localhost:3000",
-    "https://myapi-bc2fa9555e26.herokuapp.com"
-};
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy => policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()
-    );
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        if (allowedOrigins.Length > 0)
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        else
+            policy.WithOrigins("http://localhost:3000")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+    });
 });
 // Add services to the container.
 var app = builder.Build();
