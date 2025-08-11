@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y curl gnupg \
   && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
   && apt-get install -y nodejs \
   && node -v && npm -v
+COPY NuGet.config ./
 COPY MyApi/MyApi.csproj MyApi/
 # (COPY other project csproj files too if referenced)
 RUN dotnet restore MyApi/MyApi.csproj
