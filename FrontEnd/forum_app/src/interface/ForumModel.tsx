@@ -1,8 +1,10 @@
-import {Action, Thunk, Computed, action, thunk} from "easy-peasy"
+import {Action, Thunk, Computed, action, thunk, Store} from "easy-peasy"
 import { Thread } from "./ThreadModel"
 import { UserModel2 } from "./UserModel"
 import api from "../api/forums"
 import { Post } from "./PostModel"
+import axios from "axios"
+import { StoreModel } from "./StoreModel"
 export interface Forum{
     id: number,
     title: string,
@@ -55,8 +57,8 @@ export interface ForumModel{
     RemoveForum: Action<ForumModel, Forum>,
     UpdateForum: Action<ForumModel, Forum>,
     CreateForum: Thunk<ForumModel, CreateForumDto>,
-    EditForum: Thunk<ForumModel, EditForumDto>,
-    DeleteForum: Thunk<ForumModel, number>,
+    EditForum: Thunk<ForumModel, EditForumDto, void, StoreModel>,
+    DeleteForum: Thunk<ForumModel, number, void, StoreModel>,
     SearchForum: Thunk<ForumModel, string>,
     SubscribeForum: Thunk<ForumModel, number>,
     UnSubscribeForum: Thunk<ForumModel, number>,
@@ -134,8 +136,9 @@ export const forumModel: ForumModel = {
             actions.setLoading(false);
         }
     }),
-    EditForum: thunk(async(actions , EditForumDto, {getState}) => {
+    EditForum: thunk(async(actions , EditForumDto, helpers) => {
         actions.setLoading(false);
+        const {getState, getStoreActions} = helpers;
         try{
             const formData = new FormData();
             formData.append("title", EditForumDto.title)
@@ -164,14 +167,19 @@ export const forumModel: ForumModel = {
                 console.error("Edit forum failed:", response.data)
             }
         }catch(error : any){
-            console.error("Error editting forum:", error.message);
-            actions.setError(error.message);
+            const msg =
+                error?.response?.data ||
+                error.message || 'Failed to edit forum';
+            console.error("Error editting forum:", msg);
+            getStoreActions().ui.setAlert({message: msg, type: "danger"})
+            actions.setError(msg);
         }finally{
             actions.setLoading(false);
         }
     }),
-    DeleteForum: thunk(async(actions, forum_id, {getState}) => {
+    DeleteForum: thunk(async(actions, forum_id, helpers) => {
         actions.setLoading(true);
+        const {getState, getStoreActions} = helpers;
         try{
             const response = await api.delete(`/api/forum/${forum_id}`);
             if(response.status === 200){
@@ -181,10 +189,26 @@ export const forumModel: ForumModel = {
                 }
             }else{
                 console.error("Delete failed:", response.data);
+                actions.setError(response.data?.message || response.data || "Delete failed");
             }
         }catch(error : any){
-            console.error("Error deleting forum:", error.message);
-            actions.setError(error.message);
+            const msg =
+            error?.response?.data ||
+            error.message ||
+            'Failed to delete forum';
+            getStoreActions().ui.setAlert({message: msg, type: "danger"})
+            if (axios.isAxiosError(error)) {
+                const backendMessage = 
+                    error.response?.data?.message || // JSON { message: "..."}
+                    error.response?.data ||          // raw string from backend
+                    error.message;                   // fallback
+                console.error("Error deleting forum:", backendMessage);
+                actions.setError(backendMessage);
+            } else {
+                
+                console.error("Unexpected error:", error);
+                actions.setError("Unexpected error occurred.");
+            }
         }finally{
             actions.setLoading(false);
         }

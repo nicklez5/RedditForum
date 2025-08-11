@@ -17,15 +17,23 @@ const NewForum = () => {
     const [banner, setBanner] = useState<File | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showError , setShowError] = useState(false);
     const [imageUrl, setImageUrl] = useState('')
     const [loading , setLoading] = useState(false);
     const navigate = useNavigate();
     const createForum = useStoreActions((a) => a.forum.CreateForum);
+    useEffect(() => {
+        if(error && (title || description)){
+            setError(null);
+            setShowError(false);
+        }
+    },[title, description])
     const handleSubmit = async(e : React.FormEvent) => {
         e.preventDefault();
         console.log("Form submitted");
         if(!title || !description){
             setError("Title and description creation are required");
+            setShowError(true);
             return;
         }
         const dto: CreateForumDto ={
@@ -36,16 +44,22 @@ const NewForum = () => {
         }
         try{
             setLoading(true);
+            setError(null);
+            setShowError(false);
             await createForum(dto);
             console.log("Forum created successfully");
             navigate(`/home`)
         }catch(err: any){
             setError(err.message || "Failed to create forum.")
+            setShowError(true);
         }finally{
             setLoading(false);
         }
     }
+    useEffect(() => { setShowError(!!error); }, [error]);
     return (
+        <>
+        {error && <Alert variant="danger" className="text-center" dismissible show={!!error && showError} onClose={() => setShowError(false)}>{error}</Alert>}
         <div className="d-flex justify-content-center mt-5">
             <div className="w-100" style={{maxWidth: '600px'}}>
                 <h3 className="mb-4">Create new Forum</h3>
@@ -118,6 +132,7 @@ const NewForum = () => {
                 </Form>
             </div>
         </div>
+        </>
     )
 }
 export default NewForum;

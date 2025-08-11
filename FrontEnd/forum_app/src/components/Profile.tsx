@@ -4,6 +4,7 @@ import api from "../api/forums";
 import { useStoreActions, useStoreState } from "../interface/hooks";
 import { Profile } from "../interface/ProfileModel";
 import { useParams } from "react-router-dom";
+import useVisitTracker from "../hooks/useVisitTracker";
 interface ProfileProps{
     EditMode: boolean
 }
@@ -57,8 +58,9 @@ const ProfilePage: React.FC<ProfileProps> = ({EditMode}) => {
         }
         return achievements;
     }
-    const reputation = viewedProfile!.reputation;
-    const badges = getAchievements(reputation);
+    useVisitTracker({ type: "profile", id: id})
+    const reputation = viewedProfile?.reputation;
+    const badges = getAchievements(reputation!);
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selected = e.target.files?.[0];
         if(selected){
@@ -129,7 +131,7 @@ const ProfilePage: React.FC<ProfileProps> = ({EditMode}) => {
                             Date Joined {new Date(viewedProfile.dateJoined).toLocaleDateString()} 
                         </p>
                         <p>
-                            {viewedProfile.reputation} Points
+                            {viewedProfile?.reputation} Points
                         </p>
                         <p>Rank</p>
                         <div className="d-flex justify-content-center flex-wrap gap-2 mt-3">

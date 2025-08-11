@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp, faArrowDown, faComment, faEllipsis, faImage} from "@fortawesome/free-solid-svg-icons"
 import CommentForm from "./CommentForm";
 import { EditThreadDto } from "../interface/ThreadModel";
+import useVisitTracker from "../hooks/useVisitTracker";
 const ThreadPage = () => {
   const {darkMode} = useTheme();
   const loggedIn = useStoreState((s) => s.user.loggedIn);
@@ -58,6 +59,7 @@ const ThreadPage = () => {
   const bg = darkMode ? "#212529" : "#ffffff";
   const color = darkMode ? "white": "black";
   const buttonColor = darkMode ? "black": "white";
+  useVisitTracker({type: "thread", id: Number(id)});
   useEffect(() => {
   if (id) {
     fetchThread(parseInt(id));

@@ -1,4 +1,4 @@
-import { useState} from "react"
+import { useEffect, useState} from "react"
 import api from "../api/forums"
 import {useNavigate, Link, Navigate} from "react-router-dom"
 import { useStoreActions, useStoreState } from "../interface/hooks"
@@ -6,25 +6,45 @@ import styles from "../modules/LoginPage.module.css";
 import { useTheme } from "./ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTurnDown } from "@fortawesome/free-solid-svg-icons";
+import { Alert } from "react-bootstrap";
 
 const LoginPage = () => {
     const {darkMode} = useTheme();
     const navigate = useNavigate()
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
+    const [alert, setAlert] = useState<string | null>(null);
     const login = useStoreActions(actions => actions.user.login)
     const loading = useStoreState(s => s.user.loading)
     const error = useStoreState(s => s.user.error);
+    const clearAlerts  = useStoreActions(a => a.user.clearAlerts);
+    const [showError, setShowError] = useState(false);
+    const [showMsg,   setShowMsg]   = useState(false);
+    const msg = useStoreState((s) => s.user.message)
     const token = useStoreState(s => s.user.token) || null;
+    useEffect(() => {
+        clearAlerts();
+    },[clearAlerts])
+    useEffect(() => { setShowError(!!error); }, [error]);
+    useEffect(() => { setShowMsg(!!msg);     }, [msg]);
     const handleLogin = async(e: any) => {
         e.preventDefault();
+        setShowError(false);
+        setShowMsg(false);
+        clearAlerts();
         try{
             const success = await login({ username, password})
-            if(error === null){
+            if(success === true){
+                setAlert("Logged in successfully");
                 navigate("/home");
             }else{
-                navigate("/")
+                
             }
+            // if(error === null){
+            //     navigate("/home");
+            // }else{
+            //     //navigate("/")
+            // }
         }catch(err){
             console.error(err);
         }
@@ -43,6 +63,8 @@ const LoginPage = () => {
             <div className="loginPage" style={{ backgroundColor: bg2, colorScheme: color}}></div>
         </div>
         <div className="container">
+            {msg && <Alert variant="danger" dismissible show={showMsg}  onClose={() => setShowMsg(false)}>{msg}</Alert>}
+            {error && <Alert variant="danger" dismissible  show={showError}  onClose={() => setShowError(false)}>{error}</Alert>}
             <div className="row justify-content-center align-items-center" style={{minHeight: "100vh", width: "100%"}}>
                 <div className="col-12 col-md-6 col-lg-4 position-relative">
                 <form className="shadow-lg rounded-5  position-absolute top-50 start-50 translate-middle " style={{backgroundColor: bg3, padding: "60px", width: "60vh",height: "55vh" ,fontFamily: "Optima, sans-serif",colorScheme: color}} onSubmit={handleLogin}>
@@ -88,7 +110,7 @@ const LoginPage = () => {
                         </small>
                     </div>
                     <div className="d-flex justify-content-center mt-3">
-                    <button type="submit" className="rounded-4 p-2 mb-3 mt-5 w-75" style={{backgroundColor : "#f6603f", height: "60px"}}>Log in</button>
+                    <button type="submit" className="rounded-4 p-2 mb-3 mt-3 w-75" style={{backgroundColor : "#f6603f", height: "60px"}}>Log in</button>
                     </div>
                     
                     

@@ -8,6 +8,7 @@ import { notificationModel, NotificationModel } from "./Notification";
 import { MessageModel, messageModel } from "./MessageModel";
 import { profileModel, ProfileModel } from "./ProfileModel";
 import { chatStoreModel, ChatStoreModel } from "./ChatModel";
+import { uiModel, UIModel } from "./UIModel";
 export interface StoreModel {
     user: UserModel;
     admin: AdminModel;
@@ -17,6 +18,7 @@ export interface StoreModel {
     notification: NotificationModel;
     message: MessageModel;
     profile: ProfileModel;
+    ui: UIModel;
     chat: ChatStoreModel
 }
 const store = createStore<StoreModel>(
@@ -26,6 +28,7 @@ const store = createStore<StoreModel>(
         post: postModel,
         thread: threadModel,
         forum: forumModel,
+        ui: uiModel,
         notification: notificationModel,
         message: messageModel,
         profile: profileModel,

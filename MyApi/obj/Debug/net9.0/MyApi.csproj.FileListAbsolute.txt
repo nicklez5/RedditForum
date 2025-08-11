@@ -187,8 +187,6 @@ C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\scopedcss\bundle\MyApi.style
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\2qcbrw50fq-1f2oqlqaa3.gz
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\u846y55lqv-4bysstsvp2.gz
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\un33r2un23-sl60c43r8o.gz
-C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\rwhg1nlbvj-60qxcl02sv.gz
-C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\2bbr8ymfjn-2onh79srad.gz
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\staticwebassets.build.json
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\staticwebassets.build.json.cache
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\staticwebassets.development.json
@@ -199,9 +197,12 @@ C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\refint\MyApi.dll
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\MyApi.pdb
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\MyApi.genruntimeconfig.cache
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\ref\MyApi.dll
-C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\98d3w5xfo8-vcjbj4py06.gz
-C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\zonpmqdv09-unxrf0s9nh.gz
-C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\t5p22cwwp3-pqks8ppyfg.gz
-C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\qnuha61u2j-akwz0emfhx.gz
-C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\r01v149oe8-u9xnb3exd5.gz
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\MyApi.sourcelink.json
+C:\Users\pc\Documents\CSharp\MyApi\bin\Debug\net9.0\NuGet.config
+C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\o6gr6oslh8-ucatuu2crn.gz
+C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\ussjgxulm1-oxznwphcfz.gz
+C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\98d3w5xfo8-fs0x7z9op3.gz
+C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\zonpmqdv09-m2gzgffgd7.gz
+C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\gkni1qujgf-858qc46ft2.gz
+C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\xaa0kmet1v-efph91rgqv.gz
+C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\bjnja0ay4s-r8t0nejr87.gz

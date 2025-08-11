@@ -6,6 +6,7 @@ import "./App.css"
 import { ThemeProvider } from './components/ThemeContext';
 import { useTheme } from './components/ThemeContext';
 import SystemAlertBanner from './components/SystemAlertBanner';
+import GlobalAlert from './components/GlobalAlert';
 function AppContent() {
   const {darkMode} = useTheme();
    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -17,6 +18,7 @@ function AppContent() {
       <div className="flex-grow-1">
       <Header/>
       <SystemAlertBanner/>
+      <GlobalAlert/>
       <div className="app-body">
       <Sidebar open={isSidebarOpen} onClose={toggleSidebar} />
       <main style={{marginLeft: isSidebarOpen ? "170px": "50px", backgroundColor: bg}}>

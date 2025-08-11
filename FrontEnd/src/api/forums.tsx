@@ -7,7 +7,7 @@ declare module "axios" {
     }
 }
 const api = axios.create({
-    baseURL: ''
+    baseURL: 'https://redditforum.onrender.com'
 })
 
 api.interceptors.request.use(

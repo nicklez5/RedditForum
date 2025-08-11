@@ -56,6 +56,7 @@ const Settings = () => {
         const result = await changeEmail(newEmail);
         if(result?.success){
             setNewEmail("")
+            setEmail(newEmail);
         }
     }
     const handleSubmitUsername = async(e: React.FormEvent) => {
@@ -67,6 +68,7 @@ const Settings = () => {
         const result = await changeUsername(newUsername);
         if(result?.success){
             setNewUsername("")
+            setUsername(newUsername);
         }
     }
     if(error) return <div className="text-danger">Error: {error}</div>
