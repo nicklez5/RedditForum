@@ -304,13 +304,14 @@ namespace MyApi.Migrations
                 oldClrType: typeof(int),
                 oldType: "INTEGER");
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "CreatedAt",
-                table: "Threads",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Threads""
+                ALTER COLUMN ""CreatedAt""
+                TYPE timestamptz
+                USING (NULLIF(""CreatedAt"", '')::timestamptz);
+                ALTER TABLE ""Threads""
+                ALTER COLUMN ""CreatedAt"" SET NOT NULL;
+                ");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Content",
@@ -397,13 +398,15 @@ namespace MyApi.Migrations
                 oldMaxLength: 1000,
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "ExpiryDate",
-                table: "RefreshTokens",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""RefreshTokens""
+                ALTER COLUMN ""ExpiryDate""
+                TYPE timestamptz
+                USING (NULLIF(""ExpiryDate"", '')::timestamptz);
+                ALTER TABLE ""RefreshTokens""
+                ALTER COLUMN ""ExpiryDate"" SET NOT NULL;
+                ");
+ 
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -480,13 +483,15 @@ namespace MyApi.Migrations
                 oldType: "TEXT",
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "CreatedAt",
-                table: "Posts",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Posts""
+                ALTER COLUMN ""CreatedAt""
+                TYPE timestamptz
+                USING (NULLIF(""CreatedAt"", '')::timestamptz);
+                ALTER TABLE ""Posts""
+                ALTER COLUMN ""CreatedAt"" SET NOT NULL;
+                ");
+
 
             migrationBuilder.AlterColumn<string>(
                 name: "Content",
@@ -523,14 +528,16 @@ namespace MyApi.Migrations
                 oldClrType: typeof(string),
                 oldType: "TEXT",
                 oldNullable: true);
+                
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""PageVisits""
+                ALTER COLUMN ""StartedAt""
+                TYPE timestamptz
+                USING (NULLIF(""StartedAt"", '')::timestamptz);
+                ALTER TABLE ""PageVisits""
+                ALTER COLUMN ""StartedAt"" SET NOT NULL;
+                ");
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "StartedAt",
-                table: "PageVisits",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
 
             migrationBuilder.AlterColumn<Guid>(
                 name: "SessionId",
@@ -583,13 +590,15 @@ namespace MyApi.Migrations
                 oldType: "TEXT",
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "EndedAt",
-                table: "PageVisits",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""PageVisits""
+                ALTER COLUMN ""EndedAt""
+                TYPE timestamptz
+                USING (NULLIF(""EndedAt"", '')::timestamptz);
+                ALTER TABLE ""PageVisits""
+                ALTER COLUMN ""EndedAt"" SET NOT NULL;
+                ");
+            
 
             migrationBuilder.AlterColumn<int>(
                 name: "DurationMs",
@@ -671,14 +680,15 @@ namespace MyApi.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "CreatedAt",
-                table: "Notifications",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Notifications""
+                ALTER COLUMN ""CreatedAt""
+                TYPE timestamptz
+                USING (NULLIF(""CreatedAt"", '')::timestamptz);
+                ALTER TABLE ""Notifications""
+                ALTER COLUMN ""CreatedAt"" SET NOT NULL;
+                ");
+            
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -769,13 +779,15 @@ namespace MyApi.Migrations
                 oldType: "TEXT",
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "CreatedAt",
-                table: "Forums",
-                type: "timestamp with time zone",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "TEXT");
+            migrationBuilder.Sql(@"
+            ALTER TABLE ""Forums""
+            ALTER COLUMN ""CreatedAt""
+            TYPE timestamptz
+            USING (NULLIF(""CreatedAt"", '')::timestamptz);
+            ALTER TABLE ""Forums""
+            ALTER COLUMN ""CreatedAt"" SET NOT NULL;
+            ");
+            
 
             migrationBuilder.AlterColumn<string>(
                 name: "BannerUrl",
