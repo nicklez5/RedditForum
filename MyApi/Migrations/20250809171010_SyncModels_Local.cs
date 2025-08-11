@@ -126,7 +126,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "LockoutEnabled",
                 table: "Users",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "boolean");
@@ -145,7 +145,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "IsModerator",
                 table: "Users",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "boolean");
@@ -153,7 +153,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "IsBanned",
                 table: "Users",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "boolean");
@@ -172,7 +172,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "EmailConfirmed",
                 table: "Users",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "boolean");
