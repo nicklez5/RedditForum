@@ -25,10 +25,10 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "TwoFactorEnabled",
                 table: "Users",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
-                oldType: "boolean");
+                oldType: "integer");
 
             migrationBuilder.AlterColumn<string>(
                 name: "SecurityStamp",
