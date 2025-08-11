@@ -13,6 +13,29 @@ namespace MyApi.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "PageVisits",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<string>(type: "text", nullable: true),
+                    ClientVisitKey = table.Column<string>(type: "text", nullable: false),
+                    SessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    EntityType = table.Column<int>(type: "integer", nullable: false),
+                    Path = table.Column<string>(type: "text", nullable: false),
+                    EntityId = table.Column<string>(type: "text", nullable: true),
+                    EntityIntId = table.Column<int>(type: "integer", nullable: true),
+                    ReferrerPath = table.Column<string>(type: "text", nullable: true),
+                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DurationMs = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PageVisits", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
@@ -467,6 +490,22 @@ namespace MyApi.Migrations
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PageVisits_ClientVisitKey",
+                table: "PageVisits",
+                column: "ClientVisitKey",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PageVisits_SessionId_StartedAt",
+                table: "PageVisits",
+                columns: new[] { "SessionId", "StartedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PageVisits_UserId_StartedAt",
+                table: "PageVisits",
+                columns: new[] { "UserId", "StartedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Posts_ApplicationUserId",
                 table: "Posts",
                 column: "ApplicationUserId");
@@ -550,6 +589,9 @@ namespace MyApi.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "PageVisits");
 
             migrationBuilder.DropTable(
                 name: "PostVotes");
