@@ -69,7 +69,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<bool>(
                 name: "PhoneNumberConfirmed",
                 table: "Users",
-                type: "INTEGER",
+                type: "boolean",
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "boolean");
