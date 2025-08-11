@@ -38,10 +38,10 @@ api.interceptors.response.use(
         }
 
         if (!allowAnonymous && error.response?.status === 401) {
-            store.getActions().user.logout();
-            if (!error.config?.suppressRedirect) {
-                window.location.href = '/';
-            }
+            //store.getActions().user.logout();
+            // if (!error.config?.suppressRedirect) {
+            //     window.location.href = '/';
+            // }
         }
 
         return Promise.reject(error);
