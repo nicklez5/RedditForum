@@ -46,10 +46,10 @@ var dbUrl = builder.Configuration["DATABASE_URL"]
 
         // Copy any query params from the URL (sslmode, pooling, etc.)
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        foreach (string? key in query.AllKeys)
+        foreach (string? key1 in query.AllKeys)
         {
-            if (!string.IsNullOrEmpty(key))
-                csb[key] = query[key]; // e.g. csb["Ssl Mode"] = "Require"
+            if (!string.IsNullOrEmpty(key1))
+                csb[key1] = query[key1]; // e.g. csb["Ssl Mode"] = "Require"
         }
 
         // If sslmode wasn't present, enforce it in prod
