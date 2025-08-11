@@ -118,7 +118,7 @@ namespace MyApi.Migrations
             migrationBuilder.AlterColumn<DateTimeOffset>(
                 name: "LockoutEnd",
                 table: "Users",
-                type: "timestamp with time zone",
+                type: "timestamptz",
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "TEXT",
