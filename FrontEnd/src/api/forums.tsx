@@ -7,7 +7,8 @@ declare module "axios" {
     }
 }
 const api = axios.create({
-    baseURL: 'https://redditforum.onrender.com'
+    baseURL: 'https://redditforum.onrender.com',
+    withCredentials: true
 })
 
 api.interceptors.request.use(
@@ -38,10 +39,10 @@ api.interceptors.response.use(
         }
 
         if (!allowAnonymous && error.response?.status === 401) {
-            //store.getActions().user.logout();
-            // if (!error.config?.suppressRedirect) {
-            //     window.location.href = '/';
-            // }
+            store.getActions().user.logout();
+            if (!error.config?.suppressRedirect) {
+                window.location.href = '/';
+            }
         }
 
         return Promise.reject(error);

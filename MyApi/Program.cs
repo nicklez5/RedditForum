@@ -12,9 +12,9 @@ using MyApi.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
 var builder = WebApplication.CreateBuilder(args);
-var allowedOrigins =
-    (builder.Configuration["CORS_ORIGINS"] ?? "")
-        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+var allowedOrigins = builder.Configuration["Cors:Origins"]?
+    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? Array.Empty<string>();
 
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<IEmailService, SendGridEmailService>();
@@ -138,6 +138,8 @@ var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    KnownNetworks = { },
+    KnownProxies = { }
 });
 
 using (var scope = app.Services.CreateScope())
