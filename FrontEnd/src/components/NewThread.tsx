@@ -17,6 +17,7 @@ const NewThread = () => {
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [error,setError] = useState<string | null>(null);
+    const [showError, setShowError] = useState(false);
     const [selectedForum , setSelectedForum] = useState<Forum | null>(null);
     const [activeTab, setActiveTab] = useState('text');
     const [loading, setLoading] = useState(false);
@@ -36,12 +37,19 @@ const NewThread = () => {
             }
         }
     },[forums,id])
+    useEffect(() => {
+        if (error && (title || selectedForum)) {
+        setError(null);
+        setShowError(false);
+        }
+    }, [title, selectedForum]);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log("Form submitted");
         if(!title || !selectedForum){
             console.log("Title and forum selection are required.")
             setError("Title and forum selection are required.");
+            setShowError(true);
             return;
         }
         console.log("Sending thread:", {
@@ -58,17 +66,23 @@ const NewThread = () => {
         }
         try{
             setLoading(true);
+            setError(null);
+            setShowError(false);
             await createThread(dto);
             console.log("Thread created successfully");
             navigate(`/home`)
         }catch(err: any){
             setError(err.message || "Failed to create thread.");
+            setShowError(true);
         }finally{
             setLoading(false);
         }
     }
+    useEffect(() => { setShowError(!!error); }, [error]);
     return (
-     <div className="d-flex justify-content-center mt-5">
+        <>
+        {error && <Alert variant="danger" className="text-center" dismissible show={!!error && showError} onClose={() => setShowError(false)}>{error}</Alert>}
+     <div className="d-flex justify-content-center mt-5 container-fluid">
         <div className="w-100" style={{ maxWidth: '600px' }}>
         <h3 className="mb-4">Create New Thread</h3>
         <Form onSubmit={handleSubmit}>
@@ -155,6 +169,7 @@ const NewThread = () => {
         </Form>
     </div>
     </div>
+    </>
     );
 }
 export default NewThread;

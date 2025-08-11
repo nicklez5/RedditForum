@@ -68,7 +68,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
-
+var keyString = builder.Configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("Jwt:Key missing");
+var keyBytes  = Encoding.UTF8.GetBytes(keyString);
+var key       = new SymmetricSecurityKey(keyBytes);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -84,12 +87,12 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-        )
+        IssuerSigningKey = key,
+        ClockSkew = TimeSpan.Zero
     };
     options.MapInboundClaims = false;
 });
+var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy =>
         policy.RequireRole("Admin"));
@@ -101,9 +104,9 @@ builder.Services.AddCors(options =>
             .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
         if (origins.Length > 0)
-            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
         else
-            policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod();
+            policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 // Add services to the container.
@@ -123,8 +126,17 @@ using (var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await SeedData.SeedAdminUser(userManager);
 }
-app.UseStaticFiles();
 app.UseCors("AllowFrontend");
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var headers = ctx.Context.Response.Headers;
+        headers["Access-Control-Allow-Origin"] = "http://localhost:3000";
+        headers["Vary"] = "Origin";
+    }
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

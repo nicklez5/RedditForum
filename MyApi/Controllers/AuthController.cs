@@ -25,9 +25,11 @@ public class AuthController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     IConfiguration configuration,
-    ApplicationDbContext context
+    ApplicationDbContext context,
+    RoleManager<IdentityRole> roles
     ) : ControllerBase
 {
+    private readonly RoleManager<IdentityRole> _roles = roles;
     private readonly ApplicationDbContext _context = context;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -39,19 +41,43 @@ public class AuthController(
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto model)
     {
+        if (model.Password != model.ConfirmPassword)
+            return BadRequest("Passwords do not match");
         var user = new ApplicationUser
         {
             UserName = model.Username,
             Email = model.Email,
             FirstName = model.FirstName,
-            LastName = model.LastName
+            LastName = model.LastName,
+            EmailConfirmed = true,
         };
 
         var result = await _userManager.CreateAsync(user, model.Password!);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+         if (!await _roles.RoleExistsAsync(model.Role))
+            await _roles.CreateAsync(new IdentityRole(model.Role));
+        await _userManager.AddToRoleAsync(user, model.Role);
+        //var NewAccessToken = await GenerateJwtToken(user);
+        return Ok(new { message = "Registration successful"});
+    }
+    [HttpPost("adminRegister")]
+    public async Task<IActionResult> Register1([FromBody] RegisterDto model)
+    {
+
+        var user = new ApplicationUser
+        {
+            UserName = model.Username,
+            Email = model.Email,
+            EmailConfirmed = true,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            IsModerator = true
+        };
+        var result = await _userManager.CreateAsync(user, model.Password!);
         if (result.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user, "User");
-            return Ok(new { message = "Registration successful" });
+            await _userManager.AddToRoleAsync(user, "Admin");
+            return Ok(new { message = "Registration successful for admin" });
         }
         return BadRequest(result.Errors);
     }

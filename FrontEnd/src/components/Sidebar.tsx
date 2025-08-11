@@ -1,4 +1,4 @@
-import {Navbar, Nav, Button} from "react-bootstrap"
+import {Navbar, Nav, Button, Alert} from "react-bootstrap"
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useStoreActions, useStoreState } from "../interface/hooks";
 import React, {useState, useEffect} from "react"
@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHouse,faFire,faBars,faComputer,faPlus, faPerson, faUserTie, faArrowRight} from "@fortawesome/free-solid-svg-icons";
 import EditForumModal from "./EditForumModal";
 import { Forum } from "../interface/ForumModel";
+import axios from "axios";
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
@@ -21,14 +22,21 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
     const [showModal , setShowModal] = useState(false);
     const fetchForums = useStoreActions((a) => a.forum.GetAllForums)
     const bg = darkMode ? "#212529": "#ffffff";
+    const error = useStoreState((s) => s.forum.error);
+    const [error1, setError] = useState('');
+    const [showError, setShowError] = useState(false);
     const deleteForum = useStoreActions((a) => a.forum.DeleteForum);
     const editForum = useStoreActions((a) => a.forum.EditForum);
     const token = useStoreState((s) => s.user.token);
     useEffect(() => {
         fetchForums()
     },[])
+    useEffect(() => {
+        setShowError(!!error);
+    },[error])
     const color = darkMode ? "white": "black"
     const buttoncolor = darkMode ? "#212529" : "#ffffff"
+    
         return (
         <div
         className={`sidebar ${open ? 'open' : ''}`}
@@ -53,7 +61,9 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
             <FontAwesomeIcon icon={faArrowRight} className = "rounded-pill" style={{backgroundColor: buttoncolor, color: color, height: "25px", width: "25px", padding: "0.5rem"}}/>
         </button>
         {open && (
-
+        <>
+        
+        {error1 && <Alert variant="danger" dismissible  show={showError}  onClose={() => setShowError(false)}>{error1}</Alert>}
         <ul className="nav flex-column p-3">
             <div className="p-3">
             <li><a href="/" className="nav-link ps-3 fs-6 my-2" style={{color: color}}><FontAwesomeIcon icon={faHouse} className="me-3"/>Home</a></li>
@@ -83,7 +93,10 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
             {forums.map(forum => (
                 <>
                 <li className="mt-2"><a href={`/forum/${forum.id}`} className="ms-3 text-decoration-none fs-6 fw-bold" style={{color: color}}><img src={`http://localhost:5220/${forum.iconUrl}`} height="30px" className="avatar"/>r/{forum.title}</a></li>
-                <button onClick={() => deleteForum(forum.id)} className="rounded-pill mt-2 bg-danger  text-white px-3">Delete</button>
+                <button onClick={() => {
+                    if(window.confirm("Are you sure you want to delete this item?")){
+                        deleteForum(forum.id)} 
+                    }} className="rounded-pill mt-2 bg-danger  text-white px-3">Delete</button>
                 <button onClick={() => {
                     setSelectedForum(forum)
                     setShowModal(true);
@@ -91,7 +104,9 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
                 </>
             ))}
             </div>
+            
         </ul>
+        </>
         )}
         {selectedForum && (
             <EditForumModal 

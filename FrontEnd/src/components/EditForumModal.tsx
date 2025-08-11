@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
-import { Modal, Button, Form} from "react-bootstrap";
-import {useStoreActions} from '../interface/hooks'
+import { Modal, Button, Form, Alert} from "react-bootstrap";
+import {useStoreActions, useStoreState} from '../interface/hooks'
 import { BooleanLiteral } from "typescript";
 import { EditForumDto } from "../interface/ForumModel";
 
@@ -23,40 +23,44 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
     const [description ,setDescription] = useState(forum.description);
     const [icon, setIcon] = useState<File | null>(null);
     const [removeIcon, setRemoveIcon] = useState(false);
+    const [showError, setShowError] = useState(false);
     const [banner, setBanner] = useState<File | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
     const [removeBanner, setRemoveBanner] = useState(false);
+    const error = useStoreState((s) => s.forum.error);
     useEffect(() => {
         setTitle(forum.title);
         setDescription(forum.description);
         setRemoveIcon(false);
         setRemoveBanner(false);
-        if(forum.iconUrl){
-            const loadIcon = async() => {
-                const res = await fetch(`http://localhost:5220${forum.iconUrl}`);
-                const blob = await res.blob();
-                const file = new File([blob], "forum-image.jpg", {type: blob.type})
-                setIcon(file);
-            }
-            loadIcon();
-        }else{
-            setIcon(null);
-        }
-        if(forum.bannerUrl){
-            const loadBanner = async() => {
-                const res = await fetch(`http://localhost:5220${forum.bannerUrl}`);
-                const blob = await res.blob();
-                const file = new File([blob], "forum-banner.jpg", {type: blob.type})
-                setBanner(file);
-            }
-            loadBanner();
-        }else{
-            setBanner(null);
-        }
+        // if(forum.iconUrl){
+        //     const loadIcon = async() => {
+        //         const res = await fetch(`http://localhost:5220${forum.iconUrl}`);
+        //         const blob = await res.blob();
+        //         const file = new File([blob], "forum-image.jpg", {type: blob.type})
+        //         setIcon(file);
+        //     }
+        //     loadIcon();
+        // }else{
+        //     setIcon(null);
+        // }
+        // if(forum.bannerUrl){
+        //     const loadBanner = async() => {
+        //         const res = await fetch(`http://localhost:5220${forum.bannerUrl}`);
+        //         const blob = await res.blob();
+        //         const file = new File([blob], "forum-banner.jpg", {type: blob.type})
+        //         setBanner(file);
+        //     }
+        //     loadBanner();
+        // }else{
+        //     setBanner(null);
+        // }
         
     },[forum])
+    useEffect(() => { setShowError(!!error); }, [error]);
     const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
+        setShowError(false);
         const dto: EditForumDto = {
             id: forum.id,
             title: title,
@@ -73,6 +77,7 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
     }
     return(
         <Modal show={show} onHide={onClose} centered>
+            {error && <Alert variant="danger" dismissible  show={showError}  onClose={() => setShowError(false)} className="mt-3">{error}</Alert>}
             <Form onSubmit={handleSubmit}>
                 <Modal.Header closeButton>
                     <Modal.Title>Edit Forum</Modal.Title>
@@ -93,6 +98,7 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
                     <Form.Group className="mb-3">
                         <Form.Label>Change Icon</Form.Label>
                         <Form.Control type="file" onChange={(e) => setIcon((e.target as HTMLInputElement).files?.[0] ?? null)} />
+                        {forum.iconUrl && <img src={`${`http://localhost:5220${forum.iconUrl}`}`} alt="icon" style={{maxHeight: "200px", marginBottom: "10px"}} />}
                     </Form.Group>
                     <Form.Check type="checkbox" label="Remove current image" checked={removeIcon} onChange={(e) => setRemoveIcon(e.target.checked)} />
                     <Form.Group className="mb-3">
@@ -127,6 +133,7 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
                                 >Remove Image</Button>
                             </div>
                         )}
+                        {forum.bannerUrl && <img src={`${`http://localhost:5220${forum.bannerUrl}`}`} alt="icon" style={{maxHeight: "200px", marginBottom: "10px"}}/>}
                     </Form.Group>
                     <Form.Check type="checkbox" label="Remove current banner" checked={removeBanner} onChange={(e) => setRemoveBanner(e.target.checked)} />
                 </Modal.Body>

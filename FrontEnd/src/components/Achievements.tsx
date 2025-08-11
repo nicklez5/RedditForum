@@ -35,7 +35,7 @@ const Achievements = () => {
                                 <div key={badge.name} className="text-center p-3 ms-3 "
                                     style={{
                                         cursor: "pointer",
-                                        border: badge.name === latestUnlocked.name ? "2px solid #0d6efd" : "2px solid transparent"
+                                        border: badge.name === latestUnlocked?.name ? "2px solid #0d6efd" : "2px solid transparent"
                                     }}
                                 >
                                     <img src={badge.icon}

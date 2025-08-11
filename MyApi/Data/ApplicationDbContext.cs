@@ -15,6 +15,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ThreadVote> ThreadVotes { get; set; }
     
     public DbSet<Message> Messages { get; set; }
+
+  public DbSet<PageVisit> PageVisits => Set<PageVisit>();
   protected override void OnModelCreating(ModelBuilder builder)
   {
     base.OnModelCreating(builder);
@@ -218,5 +220,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
            .HasForeignKey(m => m.RecipientId)
            .OnDelete(DeleteBehavior.Restrict);
 
+    builder.Entity<PageVisit>()
+           .HasIndex(x => new { x.UserId, x.StartedAt });
+    builder.Entity<PageVisit>()
+           .HasIndex(x => new { x.SessionId, x.StartedAt });
+    builder.Entity<PageVisit>()
+           .HasIndex(v => v.ClientVisitKey)
+           .IsUnique();
   }
 }
