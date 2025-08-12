@@ -270,7 +270,7 @@ const ThreadPage = () => {
               <img
                 src={toAbs(Thread.imageUrl)}
                 alt="Thread Image"
-                style={{ maxWidth: "100%", borderRadius: "8px" }}
+                style={{ maxWidth: "200px", borderRadius: "8px" }}
               />
             </div>
           )}
