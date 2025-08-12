@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "Jq6a2l8/Or8=",
+  "dgSpecHash": "PA1QzQsFTzY=",
   "success": true,
   "projectFilePath": "C:\\Users\\pc\\Documents\\CSharp\\MyApi\\MyApi.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\pc\\.nuget\\packages\\awssdk.core\\4.0.0.21\\awssdk.core.4.0.0.21.nupkg.sha512",
+    "C:\\Users\\pc\\.nuget\\packages\\awssdk.s3\\4.0.6.4\\awssdk.s3.4.0.6.4.nupkg.sha512",
     "C:\\Users\\pc\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\pc\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\pc\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

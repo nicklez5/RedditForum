@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="4.0.6.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
@@ -26,8 +27,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
   </ItemGroup>
    <!-- Build React client and copy to wwwroot -->
-<Target Name="BuildClient" AfterTargets="Build"
-        Condition="'$(SkipClientBuild)'!='true' AND Exists('$(MSBuildProjectDirectory)/../FrontEnd/package.json')">
+<Target Name="BuildClient" AfterTargets="Build" Condition="'$(SkipClientBuild)'!='true' AND Exists('$(MSBuildProjectDirectory)/../FrontEnd/package.json')">
   <Message Text="Building client in $(MSBuildProjectDirectory)/../FrontEnd" Importance="high" />
   <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />
   <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />
@@ -38,10 +38,7 @@
 
   <RemoveDir Directories="$(MSBuildProjectDirectory)/wwwroot" />
   <MakeDir Directories="$(MSBuildProjectDirectory)/wwwroot" />
-  <Copy
-    SourceFiles="@(ClientBuildFiles)"
-    DestinationFiles="@(ClientBuildFiles->'$(MSBuildProjectDirectory)/wwwroot/%(RecursiveDir)%(Filename)%(Extension)')"
-    SkipUnchangedFiles="true" />
+  <Copy SourceFiles="@(ClientBuildFiles)" DestinationFiles="@(ClientBuildFiles->'$(MSBuildProjectDirectory)/wwwroot/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 </Target>
 
 
