@@ -38,7 +38,7 @@ public class ThreadController(ThreadService threadService, UserManager<Applicati
             }
             imageUrl = "/images/threads/" + fileName;
         }
-        var thread = await _threadService.CreateThreadAsync(dto.Title, dto.Content, dto.ForumId, userId, imageUrl);
+        var thread = await _threadService.CreateThreadAsync(dto.Title, dto.ForumId, userId,dto.Content, imageUrl);
         return Ok(thread);
     }
     [HttpPut("{id}")]

@@ -11,7 +11,7 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
     private readonly ApplicationDbContext _context = context;
     private readonly NotificationService _notificationService = notificationService;
 
-    public async Task<ThreadDto> CreateThreadAsync(string title, string content, int forumId, string authorId, string? imageUrl = null)
+    public async Task<ThreadDto> CreateThreadAsync(string title, int forumId, string authorId,string? content = null,string? imageUrl = null)
     {
         var thread = new Threads
         {
@@ -443,13 +443,13 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
         };
     }
 
-    public async Task<bool> UpdateThreadAsync(int id, string title, string content, string? imageUrl = null)
+    public async Task<bool> UpdateThreadAsync(int id, string title, string? content = null, string? imageUrl = null)
     {
         var thread = await _context.Threads.FindAsync(id);
         if (thread == null) return false;
 
         thread.Title = title ?? thread.Title;
-        thread.Content = content ?? thread.Content;
+        thread.Content = content ;
         thread.ImageUrl = imageUrl;
         await _context.SaveChangesAsync();
         return true;

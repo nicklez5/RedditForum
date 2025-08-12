@@ -13,7 +13,7 @@ public class PostService(ApplicationDbContext context, NotificationService notif
     private readonly ApplicationDbContext _context = context;
     private readonly NotificationService _notificationService = notificationService;
 
-    public async Task<PostDto> CreatePostAsync(string content, string authorId, int threadId, int? parentPostId = null, string? imageUrl = "")
+    public async Task<PostDto> CreatePostAsync(string authorId, int threadId, int? parentPostId = null, string? content = "",string? imageUrl = "")
     {
         var thread = await _context.Threads
             .Include(t => t.Author)
@@ -262,12 +262,12 @@ public class PostService(ApplicationDbContext context, NotificationService notif
             Replies = nestedReplies
         };
     }
-    public async Task<bool> UpdatePostAsync(int id, string content, string? imageUrl = null)
+    public async Task<bool> UpdatePostAsync(int id, string? content = null, string? imageUrl = null)
     {
         var post = await _context.Posts.FindAsync(id);
         if (post == null) return false;
-        
-        post.Content = content ?? post.Content;
+
+        post.Content = content;
         post.ImageUrl = imageUrl;
         await _context.SaveChangesAsync();
         return true;

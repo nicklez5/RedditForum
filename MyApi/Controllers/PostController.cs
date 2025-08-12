@@ -36,7 +36,7 @@ public class PostController(PostService postService, UserManager<ApplicationUser
             }
             imagePath = "/images/posts/" + fileName;
         }
-        var post = await _postService.CreatePostAsync(dto.Content, userId, dto.ThreadId,dto.ParentPostId, imagePath);
+        var post = await _postService.CreatePostAsync(userId, dto.ThreadId,dto.ParentPostId,dto.Content, imagePath);
         return Ok(post);
     }
     [HttpPut("{id}")]

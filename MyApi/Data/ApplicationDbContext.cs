@@ -74,8 +74,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
       entity.Property(t => t.Title)
         .IsRequired();
-      entity.Property(t => t.Content);
-
+      entity.Property(t => t.Content)
+        .IsRequired(false);
       entity.HasOne(t => t.Forum)
                 .WithMany(f => f.Threads)
                 .HasForeignKey(t => t.ForumId)
