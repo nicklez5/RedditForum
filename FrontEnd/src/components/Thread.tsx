@@ -59,6 +59,10 @@ const ThreadPage = () => {
   const bg = darkMode ? "#212529" : "#ffffff";
   const color = darkMode ? "white": "black";
   const buttonColor = darkMode ? "black": "white";
+  const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+
+  const toAbs = (u: string) =>
+    /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
   useVisitTracker({type: "thread", id: Number(id)});
   useEffect(() => {
   if (id) {
@@ -82,7 +86,7 @@ const ThreadPage = () => {
   }, [Thread]);
   useEffect(() => {
     if(Thread?.imageUrl){
-      setEditThreadImagePreview(`http://localhost:5220/${Thread.imageUrl}`)
+      setEditThreadImagePreview(toAbs(Thread.imageUrl))
     }
   },[Thread])
   const handleSubmit = async(e: React.FormEvent) => {
@@ -253,7 +257,7 @@ const ThreadPage = () => {
       <Card style={{backgroundColor: bg, color: color}}>
         <div className="p-3 rounded">
         <div className="d-flex flex-row align-items-center gap-1">
-          <img src={`http://localhost:5220/${Thread.forumIconUrl}`} className="avatar"/>
+          <img src={toAbs(Thread.forumIconUrl)} className="avatar"/>
           <span className="small flex-col"><strong>r/{Thread.forumTitle} • {formatted}</strong></span>
         </div>
         <div className="fw-bold ms-lg-5 small"><Link to="/profile" className="no-hover">{Thread.authorUsername}</Link></div>
@@ -264,7 +268,7 @@ const ThreadPage = () => {
           {Thread.imageUrl && (
             <div className="mb-3">
               <img
-                src={`http://localhost:5220/${Thread.imageUrl}`}
+                src={toAbs(Thread.imageUrl)}
                 alt="Thread Image"
                 style={{ maxWidth: "100%", borderRadius: "8px" }}
               />
@@ -393,7 +397,7 @@ const ThreadPage = () => {
               </div>
               <p>{post.content}</p>
               {post.imageUrl && (
-                <img src={`http://localhost:5220/${post.imageUrl}`} alt="Uploaded" style={{ maxWidth: "100%" }} />
+                <img src={toAbs(post.imageUrl)} alt="Uploaded" style={{ maxWidth: "100%" }} />
               )}
               <div className="d-flex align-items-center gap-3 mt-1">
                 <div className="d-flex align-items-center gap-2">
@@ -471,7 +475,7 @@ const ThreadPage = () => {
                     />
                     {post.imageUrl && (
                       <div className="position-relative" style={{maxWidth: "200px"}}>
-                      <img src={`http://localhost:5220/${post.imageUrl}`} alt="Current" width="100" />
+                      <img src={toAbs(post.imageUrl)} alt="Current" width="100" />
                       <label>
                         <input 
                           type="checkbox"

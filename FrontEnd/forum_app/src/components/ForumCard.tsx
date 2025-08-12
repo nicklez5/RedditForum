@@ -13,14 +13,21 @@ interface Props{
 }
 const ForumCard: React.FC<Props> = ({forum, darkMode}) => {
     const color = darkMode ? "white" : "black";
+    const API_BASE = process.env.REACT_APP_API_BASE_URL || "";
+    const imageIconSrc = /^https?:\/\//i.test(forum.iconUrl!)
+    ? forum.iconUrl                 // already absolute
+    : `${API_BASE}/${forum.iconUrl}`.replace(/([^:]\/)\/+/g, '$1');
+    const imageBannerSrc = /^https?:\/\//i.test(forum.bannerUrl!)
+        ? forum.bannerUrl                 // already absolute
+        : `${API_BASE}/${forum.bannerUrl}`.replace(/([^:]\/)\/+/g, '$1');
     return (
         <NavLink to={`/forum/${forum.id}`} style={{textDecoration: "none", color: "inherit"}} className="card-link-wrapper">
             <div className="card border-0 shadow-sm rounded overflow-hidden mt-4" style={{width: "800px", height: "180px"}}>
-                <img src={`http://localhost:5220/${forum.bannerUrl}`} className="w-100 h-100 object-fit-cover" alt="Forum"/>
+                <img src={imageBannerSrc} className="w-100 h-100 object-fit-cover" alt="Forum"/>
                 <div className="container d-flex justify-content-between align-items-center position-absolute" style={{bottom: "-36px", left: "50%", transform: 'translateX(-50%)', zIndex: 2,  paddingLeft: '1rem', maxWidth: "900px" , width: '100%', paddingRight: "1rem"}}>
                         <div className="d-flex align-items-center">
                         <img
-                            src={`http://localhost:5220/${forum!.iconUrl}`}
+                            src={imageIconSrc}
                             alt="icon"
                             style={{
                             width: "96px",

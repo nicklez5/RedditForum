@@ -21,23 +21,32 @@ const EditThreadModal: React.FC<EditThreadModalProps> = ({thread, show, onClose}
     const [id, setId] = useState(thread.id);
     const [removeImage, setRemoveImage] = useState(false);
     const fetchThread = useStoreActions((a) => a.thread.GetThreadById);
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+    const toAbs = (u: string) =>
+    /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
     useEffect(() => {
+        let revoke: string | null = null;
+        const ac = new AbortController();
         setTitle(thread.title);
         setContent(thread.content);
         setRemoveImage(false);
-        if(thread.imageUrl){
-            const loadImage = async() => {
-                const res = await fetch(`http://localhost:5220${thread.imageUrl}`);
-                const blob = await res.blob();
-                const previewURL = URL.createObjectURL(blob);
-                setImagePreview(previewURL);
-                const file = new File([blob], "forum-image.jpg", {type: blob.type})
-                setImage(file);
-            }
-            loadImage();
-        }else{
-            setImage(null);
+        const loadImage = async() => {
+            if(!thread.imageUrl) { setImage(null); return; }
+            const url = toAbs(thread.imageUrl)
+            const res = await fetch(url, {signal: ac.signal})
+            if(!res.ok) throw new Error(`Image fetch failed: ${res.status}`)
+            const blob = await res.blob();
+            const previewURL = URL.createObjectURL(blob);
+            revoke = previewURL;
+            setImagePreview(previewURL);
+            setImage(new File([blob], 'thread-image.jpg', { type: blob.type }));
         }
+        loadImage().catch(console.error)
+        return() => {
+            ac.abort();
+            if(revoke) URL.revokeObjectURL(revoke);
+        }
+        
     },[thread])
     const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();

@@ -39,12 +39,17 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
     const bg = darkMode ? "#3E4B58" : "#ffffff";
     const color = darkMode ? "white" : "black";
     const formatted = formatDistanceToNow(new Date(thread.createdAt), {addSuffix: true})
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+    const toAbs = (u?: string) =>
+    u ? (/^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, "$1")) : "";
+
+    // …
     return (
         <NavLink to={`/threads/${thread.id}`} style={{textDecoration: "none", color: 'inherit'}} className="card-link-wrapper">
         <Card className="shadow-sm border-5 post-card" style={cardStyle}>
         <div className="d-flex flex-row align-items-center mb-1 gap-1">
             {/* <div className="small" style={{color: color}}>r/{thread.forumTitle} ° {formatted}</div> */}
-            <img src={`http://localhost:5220/${thread.forumIconUrl}`} className="avatar1" />
+            <img src={toAbs(thread.forumIconUrl)} className="avatar1" />
             <span className="small fw-semibold flex-col gap-1" style={{color: color}}>r/{thread.forumTitle} • {formatted}</span>  
         </div>
         <h5 className="mt-3 fw-bold">{thread.title}</h5>

@@ -8,7 +8,8 @@ export default function useVisitTracker(entity? : {type: "thread" |"forum" | "pr
     const visitId = useRef<number | null>(null);
     const startTime = useRef<number>(0);
     const currentKey = useRef<string | null>(null);
-    
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+    const ENDPOINT = `${API_BASE}/api/activity/visit/end`;
     useEffect(() => {
         const path = location.pathname + location.search;
         const referrer = lastPath.current || document.referrer || "";
@@ -52,7 +53,7 @@ export default function useVisitTracker(entity? : {type: "thread" |"forum" | "pr
             if(visitId.current && startTime.current){
                 const durationMs = Date.now() - startTime.current;
                 const body = JSON.stringify({visitId: visitId.current, durationMs})
-                const url = "http://localhost:5220/api/activity/visit/end"
+                const url = ENDPOINT;
                 const blob = new Blob([body], {type: "application/json"})
                 const sent = navigator.sendBeacon?.(url, blob);
                 if(!sent){

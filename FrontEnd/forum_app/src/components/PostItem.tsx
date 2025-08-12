@@ -10,7 +10,13 @@ const PostItem = ({post} : {post : Post}) => {
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [showModal, setShowModal] = useState(false);
     //const replies = posts.filter(p => p.parentPostId === post.id);
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+    const toAbs = (u?: string) =>
+    u ? (/^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, "$1")) : "";
 
+    // …
+    const imageSrc = toAbs(post.imageUrl);
+    //const forumIconSrc = toAbs(forum?.iconUrl);
     return (
         <div >
         <Link to={`/posts/${post.id}`} style={{textDecoration: "none"}}>
@@ -21,7 +27,7 @@ const PostItem = ({post} : {post : Post}) => {
             <span className="small">Post Image</span>
             <div className="d-flex align-items-center justify-content-center">
             
-            <img src={`http://localhost:5220${post.imageUrl}`} alt="" width="300" className=""/>
+            <img src={imageSrc} alt="" width="300" className=""/>
             </div>
             <hr/>
             <span className="small">Post Date</span>

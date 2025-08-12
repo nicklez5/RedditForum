@@ -36,7 +36,10 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
     },[error])
     const color = darkMode ? "white": "black"
     const buttoncolor = darkMode ? "#212529" : "#ffffff"
-    
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+
+    const toAbs = (u: string) =>
+    /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
         return (
         <div
         className={`sidebar ${open ? 'open' : ''}`}
@@ -92,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
             </>) : <div className="py-2"></div>}
             {forums.map(forum => (
                 <>
-                <li className="mt-2"><a href={`/forum/${forum.id}`} className="ms-3 text-decoration-none fs-6 fw-bold" style={{color: color}}><img src={`http://localhost:5220/${forum.iconUrl}`} height="30px" className="avatar"/>r/{forum.title}</a></li>
+                <li className="mt-2"><a href={`/forum/${forum.id}`} className="ms-3 text-decoration-none fs-6 fw-bold" style={{color: color}}><img src={toAbs(forum.iconUrl)} height="30px" className="avatar"/>r/{forum.title}</a></li>
                 <button onClick={() => {
                     if(window.confirm("Are you sure you want to delete this item?")){
                         deleteForum(forum.id)} 

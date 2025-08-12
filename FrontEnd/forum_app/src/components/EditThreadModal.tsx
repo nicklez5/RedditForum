@@ -21,13 +21,17 @@ const EditThreadModal: React.FC<EditThreadModalProps> = ({thread, show, onClose}
     const [id, setId] = useState(thread.id);
     const [removeImage, setRemoveImage] = useState(false);
     const fetchThread = useStoreActions((a) => a.thread.GetThreadById);
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+    const toAbs = (u: string) =>
+        /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
+    const src = toAbs(thread.imageUrl!);
     useEffect(() => {
         setTitle(thread.title);
         setContent(thread.content);
         setRemoveImage(false);
         if(thread.imageUrl){
             const loadImage = async() => {
-                const res = await fetch(`http://localhost:5220${thread.imageUrl}`);
+                const res = await fetch(src);
                 const blob = await res.blob();
                 const previewURL = URL.createObjectURL(blob);
                 setImagePreview(previewURL);

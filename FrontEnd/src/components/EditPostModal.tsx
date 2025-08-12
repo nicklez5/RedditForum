@@ -18,22 +18,32 @@ const EditPostModal: React.FC<EditPostModalProps> = ({post,show,onClose}) => {
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [removeImage, setRemoveImage] = useState(false);
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+    const toAbs = (u: string) =>
+    /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
+
+    const src = toAbs(post.imageUrl!);
     useEffect(() => {
+        let revoke: string | null = null;
+        const ac = new AbortController();
         setContent(post.content)
         setRemoveImage(false)
         setId(post.id)
-        if(post.imageUrl){
-            const loadImage = async() => {
-                const res = await fetch(`http://localhost:5220${post.imageUrl}`)
-                const blob = await res.blob();
-                const previewURL = URL.createObjectURL(blob);
-                setImagePreview(previewURL)
-                const file = new File([blob], "post-image.jpg", {type: blob.type})
-                setImage(file);
-            }
-            loadImage();
-        }else{
-            setImage(null);
+        const loadImage = async() => {
+            if(!post.imageUrl) { setImage(null); return; }
+            const url = toAbs(post.imageUrl)
+            const res = await fetch(url, {signal: ac.signal})
+            if(!res.ok) throw new Error(`Image fetch failed: ${res.status}`)
+            const blob = await res.blob();
+            const previewURL = URL.createObjectURL(blob);
+            revoke = previewURL;
+            setImagePreview(previewURL);
+            setImage(new File([blob], 'post-image.jpg', { type: blob.type }));
+        }
+        loadImage().catch(console.error)
+        return() => {
+            ac.abort();
+            if(revoke) URL.revokeObjectURL(revoke);
         }
     },[post])
     const handleSubmit = async(e: React.FormEvent) => {

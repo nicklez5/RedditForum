@@ -79,6 +79,10 @@ const NewThread = () => {
         }
     }
     useEffect(() => { setShowError(!!error); }, [error]);
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+
+    const toAbs = (u: string) =>
+    /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
     return (
         <>
         {error && <Alert variant="danger" className="text-center" dismissible show={!!error && showError} onClose={() => setShowError(false)}>{error}</Alert>}
@@ -103,7 +107,7 @@ const NewThread = () => {
                 {selectedForum ? (
                 <>
                     <img
-                    src={`http://localhost:5220/${selectedForum.iconUrl}`}
+                    src={toAbs(selectedForum.iconUrl)}
                     alt=""
                     style={{ width: '20px', height: '20px', borderRadius: '50%', marginRight: '8px' }}
                     />
@@ -116,7 +120,7 @@ const NewThread = () => {
                 {forums.map((forum) => (
                 <Dropdown.Item eventKey={forum.id} key={forum.id}>
                     <img
-                    src={`http://localhost:5220/${forum.iconUrl}`}
+                    src={toAbs(forum.iconUrl)}
                     alt=""
                     style={{ width: '20px', height: '20px', borderRadius: '50%', marginRight: '8px' }}
                     />

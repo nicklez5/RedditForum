@@ -60,6 +60,10 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
         }
     }
     const formatted = (date: Date) => formatDistanceToNow(new Date(date), {addSuffix: true})
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+
+    const toAbs = (u: string) =>
+    /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
     return (
         <div className="ms-4 mt-2 border-start ps-3">
             <div className="d-flex flex-row align-items-center gap-1">
@@ -114,7 +118,7 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                     </div>
                     {reply.imageUrl && (
                         <div className="position-relative" style={{maxWidth: "200px"}}>
-                            <img src={`http://localhost:5220/${reply.imageUrl}`} alt="Current" width="100"/>
+                            <img src={toAbs(reply.imageUrl)} alt="Current" width="100"/>
                             <label>
                                 <input
                                     type="checkbox"
@@ -135,7 +139,7 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                 </Form>
             ) : (
                 <div className="position-relative" >
-                {reply.imageUrl ? <img src={`http://localhost:5220/${reply.imageUrl}`} alt="Current" width="500"/> : null}
+                {reply.imageUrl ? <img src={toAbs(reply.imageUrl)} alt="Current" width="500"/> : null}
                 
                 <p className="mb-1">{reply.content}</p>
                 </div>

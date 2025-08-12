@@ -23,6 +23,7 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
     const [description ,setDescription] = useState(forum.description);
     const [icon, setIcon] = useState<File | null>(null);
     const [removeIcon, setRemoveIcon] = useState(false);
+    const [iconPreview, setIconPreview] = useState<string | null>(null);
     const [showError, setShowError] = useState(false);
     const [banner, setBanner] = useState<File | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
@@ -33,31 +34,14 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
         setDescription(forum.description);
         setRemoveIcon(false);
         setRemoveBanner(false);
-        // if(forum.iconUrl){
-        //     const loadIcon = async() => {
-        //         const res = await fetch(`http://localhost:5220${forum.iconUrl}`);
-        //         const blob = await res.blob();
-        //         const file = new File([blob], "forum-image.jpg", {type: blob.type})
-        //         setIcon(file);
-        //     }
-        //     loadIcon();
-        // }else{
-        //     setIcon(null);
-        // }
-        // if(forum.bannerUrl){
-        //     const loadBanner = async() => {
-        //         const res = await fetch(`http://localhost:5220${forum.bannerUrl}`);
-        //         const blob = await res.blob();
-        //         const file = new File([blob], "forum-banner.jpg", {type: blob.type})
-        //         setBanner(file);
-        //     }
-        //     loadBanner();
-        // }else{
-        //     setBanner(null);
-        // }
+        
         
     },[forum])
     useEffect(() => { setShowError(!!error); }, [error]);
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+    const toAbs = (u?: string) =>
+        u ? (/^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, "$1")) : "";
+
     const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
         setShowError(false);
@@ -97,8 +81,36 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
                     </Form.Group>
                     <Form.Group className="mb-3">
                         <Form.Label>Change Icon</Form.Label>
-                        <Form.Control type="file" onChange={(e) => setIcon((e.target as HTMLInputElement).files?.[0] ?? null)} />
-                        {forum.iconUrl && <img src={`${`http://localhost:5220${forum.iconUrl}`}`} alt="icon" style={{maxHeight: "200px", marginBottom: "10px"}} />}
+                        <Form.Control type="file" onChange={(e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0] ?? null;
+                            setIcon(file)
+                            if(file){
+                                const previewUrl = URL.createObjectURL(file);
+                                setIconPreview(previewUrl)
+                            }else{
+                                setIconPreview(null);
+                            }} 
+                            }/>
+                            <br/>
+                            {iconPreview && (
+                                <div>
+                                    <img 
+                                        src={iconPreview}
+                                        alt="Preview"
+                                        style={{maxWidth: "200px", borderRadius: "5px"}}
+                                    />
+                                    <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        onClick={() => {
+                                            setIcon(null);
+                                            setRemoveIcon(true)
+                                            setIconPreview(null);
+                                        }} className="ms-2"
+                                        >Remove Image</Button>
+                                </div>
+                            )}
+                        {forum.iconUrl && <img src={toAbs(forum.iconUrl)} alt="icon" style={{maxHeight: "200px", marginBottom: "10px"}} />}
                     </Form.Group>
                     <Form.Check type="checkbox" label="Remove current image" checked={removeIcon} onChange={(e) => setRemoveIcon(e.target.checked)} />
                     <Form.Group className="mb-3">
@@ -133,7 +145,7 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
                                 >Remove Image</Button>
                             </div>
                         )}
-                        {forum.bannerUrl && <img src={`${`http://localhost:5220${forum.bannerUrl}`}`} alt="icon" style={{maxHeight: "200px",maxWidth: "450px", marginBottom: "10px"}}/>}
+                        {forum.bannerUrl && <img src={toAbs(forum.bannerUrl)} alt="icon" style={{maxHeight: "200px",maxWidth: "450px", marginBottom: "10px"}}/>}
                     </Form.Group>
                     <Form.Check type="checkbox" label="Remove current banner" checked={removeBanner} onChange={(e) => setRemoveBanner(e.target.checked)} />
                 </Modal.Body>
