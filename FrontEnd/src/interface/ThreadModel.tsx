@@ -122,19 +122,29 @@ export const threadModel: ThreadModel = {
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
             const res = await api.post<Thread>("/api/thread", formData);
-
-            const created = res.data as any;
-            const threadId = Number(created?.id ?? created?.Id);
-            console.log('posting image to thread', threadId, created);
-            if (!Number.isFinite(threadId)) {
-            console.error("CreateThread missing id", {
-                status: res.status,
-                contentType: res.headers["content-type"],
-                headers: res.headers,
-                body: res.data
+                        
+            console.log("[CREATE RAW]", {
+            status: res.status,
+            ctype: res.headers["content-type"],
+            location: (res.headers as any)?.location,
+            body: res.data
             });
-            throw new Error("No thread id returned from /api/thread");
+
+            const body: any = res.data;
+            let threadId: number | null =
+            typeof body?.id === "number" ? body.id :
+            typeof body?.Id === "number" ? body.Id :
+            null;
+
+            if (threadId == null) {
+            const loc = (res.headers as any)?.location as string | undefined;
+            const last = loc?.split("/").pop();
+            const n = last ? Number(last) : NaN;
+            if (Number.isFinite(n)) threadId = n;
             }
+
+            console.log("[CREATE ID]", { threadId });
+            if (threadId == null) throw new Error("No thread id returned from /api/thread");
 
             const thread: Thread = { ...res.data };
             const getDims = async(file: File) => {
