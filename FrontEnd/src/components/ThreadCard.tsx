@@ -68,14 +68,14 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         <h5 className="mt-3 fw-bold">{thread.title}</h5>
         <div className="mb-2" style={{color:color}}>{thread.content}</div>
         <div>
-            {thread.imageUrl && (
-                <img src={imgSrc} style={{width: "200px"}} />
+            {imgSrc && (
+                <img src={imgSrc} style={{width: "200px"}} onError={() => console.error('CARD IMG ERROR', imgSrc)}/>
             )}
         </div>
         <div>
-            {thread.videoUrl && (
+            {videoSrc && (
                 <video width="400" controls>
-                    <source src={videoSrc} type={thread.videoContentType ?? "video/mp4"} />
+                    <source src={videoSrc} type={thread.videoContentType ?? "video/mp4"} onError={() => console.error('CARD VIDEO ERROR', videoSrc)} />
                 </video>
             )}
         </div>
