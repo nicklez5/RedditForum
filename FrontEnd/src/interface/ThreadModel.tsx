@@ -121,10 +121,27 @@ export const threadModel: ThreadModel = {
             formData.append("title", CreateThreadDto.title);
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
-            const {data: created} = await api.post<Thread>("/api/thread", formData
-            );
-            const thread = created;
-            const threadId = created.id 
+            const response = await api.post<Thread>("/api/thread", formData);
+            const created = response.data;
+
+            // Try body.id, body.Id, then Location header (/api/thread/123)
+            const idFromBody =
+                (created as any)?.id ?? (created as any)?.Id ?? null;
+
+            const idFromLocation = (() => {
+                const loc: string | undefined = (response.headers as any)?.location;
+                if (!loc) return null;
+                const last = loc.split("/").pop();
+                const n = Number(last);
+                return Number.isFinite(n) ? n : null;
+            })();
+
+            const threadId = idFromBody ?? idFromLocation;
+            if (threadId == null) {
+                console.error("CreateThread response missing id", { body: created, headers: response.headers });
+                throw new Error("No thread id returned from /api/thread");
+            }
+            const thread: Thread = { ...created };
             const getDims = async(file: File) => {
                 try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
                 catch { return undefined;}
@@ -335,7 +352,7 @@ export const threadModel: ThreadModel = {
     SearchByFilterThread: thunk(async(actions, sortBy) => {
         actions.setLoading(true);
         try{
-            const response = await api.get(`/api/thread/search?sortBy=${sortBy}`)
+            const response = await api.get<Thread[]>(`/api/thread/search?sortBy=${sortBy}`)
             actions.SetThreads(response.data);
             actions.setError(null);
         }catch(error : any){
