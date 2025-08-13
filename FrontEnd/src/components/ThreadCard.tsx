@@ -67,7 +67,9 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         </div>
         <div>
             {thread.videoUrl && (
-                <video src={toAbs(thread.videoUrl)} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}} />
+                <video width="400" controls>
+                    <source src={toAbs(thread.videoUrl)} type={thread.videoContentType ?? "video/mp4"} />
+                </video>
             )}
         </div>
         <div className="d-flex gap-3 text-muted small" onClick={(e) => e.stopPropagation()}>
