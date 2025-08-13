@@ -121,10 +121,10 @@ export const threadModel: ThreadModel = {
             formData.append("title", CreateThreadDto.title);
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
-            const response = await api.post("/api/thread", formData
+            const {data: created} = await api.post<Thread>("/api/thread", formData
             );
-            const thread = response.data;
-            const threadId = thread.id;
+            const thread = created;
+            const threadId = created.id 
             const getDims = async(file: File) => {
                 try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
                 catch { return undefined;}
@@ -348,8 +348,8 @@ export const threadModel: ThreadModel = {
     SearchByForumFilterThread: thunk(async(actions,{sortBy, id}) => {
         actions.setLoading(true);
         try{
-            const response = await api.get(`/api/thread/${id}/search?sortBy=${sortBy}`, {allowAnonymous: true , suppressRedirect: true})
-            actions.SetThreads(response.data);
+            const {data} = await api.get<Thread[]>(`/api/thread/${id}/search?sortBy=${sortBy}`, {allowAnonymous: true , suppressRedirect: true})
+            actions.SetThreads(data);
             actions.setError(null);
         }catch(error : any){
             console.error("Failed to sort threads", error)
