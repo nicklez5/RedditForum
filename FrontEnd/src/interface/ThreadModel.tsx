@@ -121,36 +121,37 @@ export const threadModel: ThreadModel = {
             formData.append("title", CreateThreadDto.title);
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
-            const response = await api.post<Thread>("/api/thread", formData);
-            console.log("CREATE /api/thread ->", {
-                status: response.status,
-                contentType: response.headers["content-type"],
-                location: response.headers["location"],
-                data: response.data
-                });
-            const created = response.data;
+            const res = await api.post<Thread>("/api/thread", formData);
 
-           let threadId: number | null =
-            (created as any)?.id ?? (created as any)?.Id ?? null;
+            // 2) GET ID FROM BODY (camel or Pascal), OR LOCATION HEADER
+            let threadId: number | null =
+            (res.data as any)?.id ?? (res.data as any)?.Id ?? null;
 
-            // Fallback to Location header if body empty
             if (threadId == null) {
-                const loc: string | undefined = (response.headers as any)?.location;
+                const loc = (res.headers as any)?.location as string | undefined; // requires CORS expose
                 const last = loc?.split("/").pop();
                 const n = last ? Number(last) : NaN;
-                if (Number.isFinite(n)) threadId = n;
-            }
+            if (Number.isFinite(n)) threadId = n;
+                }
 
             if (threadId == null) {
-                console.error("CreateThread missing id", {
-                status: response.status,
-                contentType: response.headers["content-type"],
-                headers: response.headers,
-                body: response.data
+            console.error("CreateThread missing id", {
+                status: res.status,
+                ctype: res.headers["content-type"],
+                headers: res.headers,
+                body: res.data
             });
+            console.log("Create /api/thread ->", {
+            status: res.status,
+            ctype: res.headers["content-type"],
+            location: (res.headers as any)?.location,
+            body: res.data
+            });
+            console.log("threadId =", threadId);
             throw new Error("No thread id from /api/thread");
             }
-            const thread: Thread = { ...created };
+
+            const thread: Thread = { ...res.data };
             const getDims = async(file: File) => {
                 try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
                 catch { return undefined;}
