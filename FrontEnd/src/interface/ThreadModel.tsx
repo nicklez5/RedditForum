@@ -124,22 +124,20 @@ export const threadModel: ThreadModel = {
             const response = await api.post<Thread>("/api/thread", formData);
             const created = response.data;
 
-            // Try body.id, body.Id, then Location header (/api/thread/123)
-            const idFromBody =
-                (created as any)?.id ?? (created as any)?.Id ?? null;
+           let threadId: number | null =
+            (created as any)?.id ?? (created as any)?.Id ?? null;
 
-            const idFromLocation = (() => {
-                const loc: string | undefined = (response.headers as any)?.location;
-                if (!loc) return null;
-                const last = loc.split("/").pop();
-                const n = Number(last);
-                return Number.isFinite(n) ? n : null;
-            })();
-
-            const threadId = idFromBody ?? idFromLocation;
+            // Fallback to Location header if body empty
             if (threadId == null) {
-                console.error("CreateThread response missing id", { body: created, headers: response.headers });
-                throw new Error("No thread id returned from /api/thread");
+                const loc: string | undefined = (response.headers as any)?.location;
+                const last = loc?.split("/").pop();
+                const n = last ? Number(last) : NaN;
+                if (Number.isFinite(n)) threadId = n;
+            }
+
+            if (threadId == null) {
+            console.error("CreateThread missing id", { created, headers: response.headers });
+            throw new Error("No thread id from /api/thread");
             }
             const thread: Thread = { ...created };
             const getDims = async(file: File) => {
