@@ -55,6 +55,8 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         return `${ASSET_BASE}/${u.replace(/^\/+/, '')}`    // join with asset base
                 .replace(/([^:]\/)\/+/g, '$1');
         };
+    const imgSrc   = resolveAsset(thread.imageUrl ?? (thread as any).imageKey);
+    const videoSrc = resolveAsset(thread.videoUrl ?? (thread as any).videoKey);
     return (
         <NavLink to={`/threads/${thread.id}`} style={{textDecoration: "none", color: 'inherit'}} className="card-link-wrapper">
         <Card className="shadow-sm border-5 post-card" style={cardStyle}>
@@ -67,13 +69,13 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         <div className="mb-2" style={{color:color}}>{thread.content}</div>
         <div>
             {thread.imageUrl && (
-                <img src={resolveAsset(thread.imageUrl)} style={{width: "200px"}} />
+                <img src={imgSrc} style={{width: "200px"}} />
             )}
         </div>
         <div>
             {thread.videoUrl && (
                 <video width="400" controls>
-                    <source src={resolveAsset(thread.videoUrl)} type={thread.videoContentType ?? "video/mp4"} />
+                    <source src={videoSrc} type={thread.videoContentType ?? "video/mp4"} />
                 </video>
             )}
         </div>
