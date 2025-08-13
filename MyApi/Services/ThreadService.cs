@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.EntityFrameworkCore.Metadata;
 namespace MyApi.Services;
 
-public class ThreadService(ApplicationDbContext context, NotificationService notificationService, IVideoStorageService videos , IObjectStorageService storage)
+public class ThreadService(ApplicationDbContext context, NotificationService notificationService, IAssetUrlBuilder assets, IVideoStorageService videos , IObjectStorageService storage)
 {
     private readonly ApplicationDbContext _context = context;
     private readonly NotificationService _notificationService = notificationService;
@@ -14,6 +14,9 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
     private readonly IVideoStorageService _videos = videos;
 
     private readonly IObjectStorageService _storage = storage;
+
+    private readonly IAssetUrlBuilder _assets = assets;
+    
     public async Task<ThreadDto> CreateThreadAsync(string title, int forumId, string authorId, string? content = null)
     {
         var thread = new Threads
@@ -49,6 +52,8 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
             ForumTitle = thread.Forum!.Title,
             AuthorId = thread.ApplicationUserId,
             AuthorUsername = thread.Author?.UserName ?? "Unknown",
+            ImageKey = "",
+            ImageUrl = "",
             VideoKey = "",
             VideoUrl = "",
             VideoContentType = "",
@@ -178,10 +183,8 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
                 ForumIconUrl = t.Forum?.IconUrl ?? "Unknown",
                 AuthorId = t.ApplicationUserId,
                 AuthorUsername = t.Author?.UserName ?? "Unknown",
-                ImageUrl = t.ImageUrl,
-                ImageKey = t.ImageKey,
-                VideoKey = t.VideoKey,
-                VideoUrl = t.VideoUrl,
+                ImageUrl = _assets.BuildOrNull(t.ImageKey),
+                VideoUrl = _assets.BuildOrNull(t.VideoKey),
                 VideoContentType = t.VideoContentType,
                 PostCount = posts.Count,
                 LikeCount = threadLikeCount,
@@ -256,10 +259,10 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
                 Id = thread.Id,
                 Title = thread.Title,
                 Content = thread.Content,
-                ImageUrl = thread.ImageUrl,
+                ImageUrl = _assets.BuildOrNull(thread.ImageKey),
                 ImageKey = thread.ImageKey,
                 VideoKey = thread.VideoKey,
-                VideoUrl = thread.VideoUrl,
+                VideoUrl = _assets.BuildOrNull(thread.VideoKey),
                 VideoContentType = thread.VideoContentType,
                 ForumId = thread.ForumId,
                 ForumTitle = thread.Forum?.Title ?? "Unknown",
@@ -321,10 +324,10 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
                 {
                     Id = p.Id,
                     Content = p.Content!,
-                    ImageUrl = p.ImageUrl,
+                    ImageUrl = _assets.BuildOrNull(p.ImageKey),
                     ImageKey = p.ImageKey,
                     VideoKey = p.VideoKey,
-                    VideoUrl = p.VideoUrl,
+                    VideoUrl = _assets.BuildOrNull(p.VideoKey),
                     VideoContentType = p.VideoContentType,
                     AuthorUsername = p.Author?.UserName ?? "Unknown",
                     ProfileImageUrl = p.Author?.ProfileImageUrl ?? "https://www.redditstatic.com/avatars/avatar_default_02_FF4500.png",
@@ -342,10 +345,10 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
                 Id = thread.Id,
                 Title = thread.Title,
                 Content = thread.Content,
-                ImageUrl = thread.ImageUrl,
+                ImageUrl =  _assets.BuildOrNull(thread.ImageKey),
                 ImageKey = thread.ImageKey,
                 VideoKey = thread.VideoKey,
-                VideoUrl = thread.VideoUrl,
+                VideoUrl = _assets.BuildOrNull(thread.VideoKey),
                 VideoContentType = thread.VideoContentType,
                 ForumId = thread.ForumId,
                 ForumTitle = thread.Forum?.Title ?? "Unknown",
@@ -500,7 +503,7 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
             {
                 Id = p.Id,
                 Content = p.Content!,
-                ImageUrl = p.ImageUrl,
+                ImageUrl = _assets.BuildOrNull(p.ImageKey),
                 ImageKey = p.ImageKey,
                 AuthorUsername = p.Author?.UserName ?? "Unknown",
                 ProfileImageUrl = p.Author?.ProfileImageUrl ?? "https://www.redditstatic.com/avatars/avatar_default_02_FF4500.png",
@@ -509,7 +512,7 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
                 CreatedAt = p.CreatedAt,
                 LikeCount = postLikeCounts.GetValueOrDefault(p.Id, 0),
                 VideoKey = p.VideoKey,
-                VideoUrl = p.VideoUrl,
+                VideoUrl = _assets.BuildOrNull(p.VideoKey),
                 VideoContentType = p.VideoContentType,
                 VideoSizeBytes = p.VideoSizeBytes, 
                 VideoDurationSec = p.VideoDurationSec,
@@ -523,9 +526,9 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
             Id = thread.Id,
             Title = thread.Title,
             Content = thread.Content!,
-            ImageUrl = thread.ImageUrl,
+            ImageUrl = _assets.BuildOrNull(thread.ImageKey),
             ImageKey = thread.ImageKey,
-            VideoUrl = thread.VideoUrl,
+            VideoUrl = _assets.BuildOrNull(thread.VideoKey),
             VideoKey = thread.VideoKey,
             VideoContentType = thread.VideoContentType,
             ForumId = thread.ForumId,
@@ -668,47 +671,70 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
     }
     public async Task<List<ThreadDto>> SearchThreads(string? viewerUserId = null, string sortBy = "new")
     {
-        var threads = await _context.Threads
-            .Include(t => t.Author)
-            .Include(t => t.Forum)
-            .Include(t => t.Posts)
-            .Include(t => t.Votes)
-            .ToListAsync();
-
-        var result = threads.Select(t =>
-        {
-            var userVote = viewerUserId != null ? t.Votes.FirstOrDefault(v => v.UserId == viewerUserId)?.Value ?? 0 : 0;
-            return new ThreadDto
+        // 1) Start with an IQueryable and NO Includes (projection handles joins)
+        var q = _context.Threads.AsNoTracking()
+            .Select(t => new
             {
-                Id = t.Id,
-                Title = t.Title,
-                Content = t.Content,
-                ImageUrl = t.ImageUrl,
+                t.Id,
+                t.Title,
+                t.Content,
+                t.CreatedAt,
+                t.ForumId,
+                ForumTitle = t.Forum != null ? t.Forum.Title : null,
+                ForumIconKey = t.Forum != null ? t.Forum.IconKey : null,
+
+                AuthorUsername = t.Author != null ? t.Author.UserName : null,
+
                 ImageKey = t.ImageKey,
-                VideoUrl = t.VideoUrl,
                 VideoKey = t.VideoKey,
                 VideoContentType = t.VideoContentType,
-                AuthorUsername = t.Author?.UserName ?? "Unknown",
-                CreatedAt = t.CreatedAt,
-                ForumId = t.ForumId,
-                ForumTitle = t.Forum?.Title ?? "Unknown",
-                ForumIconUrl = t.Forum?.IconUrl ?? "Unknown",
-                PostCount = t.Posts.Count,
-                LikeCount = t.LikeCount,
-                UserVote = userVote,
-                Posts = []
-            };
-        }).ToList();
-        var sorted = (sortBy.ToLower() switch
-        {
-            "best" => result.OrderByDescending(t => t.PostCount),
-            "hot" => result.OrderByDescending(t => t.LikeCount),
-            "random" => result.OrderBy(_ => Guid.NewGuid()), // This works with in-memory lists
-            _ => result.OrderByDescending(t => t.CreatedAt),
-        }).ToList();
 
-        return sorted;
+                PostCount = t.Posts.Count(),
+                LikeCount = t.Votes.Count(),
+                UserVote = viewerUserId != null
+                    ? t.Votes.Where(v => v.UserId == viewerUserId).Select(v => v.Value).FirstOrDefault()
+                    : 0
+            });
+
+        // 2) Sort in the DB when possible
+        q = (sortBy?.ToLowerInvariant()) switch
+        {
+            "best"  => q.OrderByDescending(x => x.PostCount),
+            "hot"   => q.OrderByDescending(x => x.LikeCount),
+            "random" => q.OrderBy(_ => Guid.NewGuid()), 
+            // NOTE: random ordering is provider-specific; keep it client-side if needed
+            _       => q.OrderByDescending(x => x.CreatedAt),
+        };
+
+        var rows = await q.ToListAsync();
+
+        // 3) Build absolute URLs *once* from keys (or return null)
+        return rows.Select(x => new ThreadDto
+        {
+            Id = x.Id,
+            Title = x.Title!,
+            Content = x.Content,
+            CreatedAt = x.CreatedAt,
+
+            ForumId = x.ForumId,
+            ForumTitle = x.ForumTitle ?? "Unknown",
+            ForumIconUrl = _assets.BuildOrNull(x.ForumIconKey),   // <- no "Unknown" string for URLs
+
+            AuthorUsername = x.AuthorUsername ?? "Unknown",
+
+            ImageKey = x.ImageKey,
+            ImageUrl = _assets.BuildOrNull(x.ImageKey),           // <- consistent build from key
+            VideoKey = x.VideoKey,
+            VideoUrl = _assets.BuildOrNull(x.VideoKey),
+            VideoContentType = x.VideoContentType,
+
+            PostCount = x.PostCount,
+            LikeCount = x.LikeCount,
+            UserVote = x.UserVote,
+            Posts = []
+        }).ToList();
     }
+    
     public async Task<List<ThreadDto>> SearchThreadsInForum(int forumId, string? viewerUserId = null, string sortBy = "new")
     {
         var threads = await _context.Threads
@@ -727,9 +753,9 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
                 Id = t.Id,
                 Title = t.Title,
                 Content = t.Content,
-                ImageUrl = t.ImageUrl,
+                ImageUrl = _assets.BuildOrNull(t.ImageKey),
                 ImageKey = t.ImageKey,
-                VideoUrl = t.VideoUrl,
+                VideoUrl = _assets.BuildOrNull(t.VideoKey),
                 VideoKey = t.VideoKey,
                 VideoContentType = t.VideoContentType,
                 AuthorUsername = t.Author?.UserName ?? "Unknown",

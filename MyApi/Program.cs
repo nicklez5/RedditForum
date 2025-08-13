@@ -151,6 +151,7 @@ builder.Services.AddSingleton<IAmazonS3>(_ =>
     };
     return new AmazonS3Client(cfg);
 });
+builder.Services.AddSingleton<IAssetUrlBuilder, AssetUrlBuilder>();
 builder.Services.AddSingleton<IVideoStorageService, S3VideoStorageService>();
 builder.Services.AddSingleton<IObjectStorageService, S3ObjectStorageService>();
 // Add services to the container.
