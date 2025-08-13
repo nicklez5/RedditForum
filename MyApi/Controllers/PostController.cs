@@ -9,7 +9,9 @@ using MyApi.Models;
 using MyApi.Services;
 using SQLitePCL;
 
+
 namespace MyApi.Controllers;
+public record AttachVideoDto(string Key, string Url, string ContentType, long SizeBytes, double? DurationSec);
 
 [ApiController]
 [Route("api/[controller]")]
@@ -25,19 +27,78 @@ public class PostController(PostService postService, UserManager<ApplicationUser
         var userId = _userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
-        string? imagePath = null;
-        if (dto.Image != null && dto.Image.Length > 0)
-        {
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
-            var filePath = Path.Combine("wwwroot/images/posts", fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Image.CopyToAsync(stream);
-            }
-            imagePath = "/images/posts/" + fileName;
-        }
-        var post = await _postService.CreatePostAsync(userId, dto.ThreadId,dto.ParentPostId,dto.Content, imagePath);
+        var post = await _postService.CreatePostAsync(userId, dto.ThreadId, dto.ParentPostId, dto.Content);
         return Ok(post);
+    }
+    [HttpPost("{id}/video")]
+    public async Task<IActionResult> AttachOrReplaceVideo(int id, [FromBody] AttachVideoDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var post = await _postService.GetPostByIdAsync(id, user.Id);
+
+        if (post == null)
+            return NotFound("Post not found");
+
+        if (post.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this post.");
+
+        var success = await _postService.AttachOrReplaceVideoPostAsync(id, dto.Key, dto.Url, dto.ContentType, dto.SizeBytes, dto.DurationSec);
+        return success
+            ? Ok(await _postService.GetPostByIdAsync(id, user.Id))
+            : NotFound("Post not found");
+    }
+    [HttpDelete("{id}/video")]
+    public async Task<IActionResult> DeleteVideo(int id)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var post = await _postService.GetPostByIdAsync(id, user.Id);
+
+        if (post == null)
+            return NotFound("Post not found");
+
+        if (post.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this post.");
+        var success = await _postService.DeleteVideoAsync(id);
+        return success ? Ok(await _postService.GetPostByIdAsync(id, user.Id)) : NotFound("Post not found");
+    }
+    [HttpPost("{id}/image")]
+    public async Task<IActionResult> AttachOrReplaceImage(int id, [FromBody] AttachImageDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var post = await _postService.GetPostByIdAsync(id, user.Id);
+
+        if (post == null)
+            return NotFound("Post not found");
+
+        if (post.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this post.");
+
+        var success = await _postService.AttachImage(id, dto.Url, dto.Key, dto.ContentType, dto.SizeBytes, dto.Width, dto.Height);
+        return success
+            ? Ok(await _postService.GetPostByIdAsync(id, user.Id))
+            : NotFound("Post not found");
+    }
+    [HttpDelete("{id}/image")]
+    public async Task<IActionResult> DeleteImage(int id)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var post = await _postService.GetPostByIdAsync(id, user.Id);
+
+        if (post == null)
+            return NotFound("Post not found");
+
+        if (post.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this post.");
+        var success = await _postService.DeleteImageAsync(id);
+        return success ? Ok(await _postService.GetPostByIdAsync(id, user.Id)) : NotFound("Post not found");
     }
     [HttpPut("{id}")]
     public async Task<IActionResult> EditPost(int id, [FromForm] EditPostDto dto)
@@ -50,44 +111,11 @@ public class PostController(PostService postService, UserManager<ApplicationUser
         if (post == null)
             return NotFound("Post not found.");
 
-        if (post.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user,"Admin"))
+        if (post.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
             return Forbid("You are not allowed to edit this post.");
 
-        string? imageUrl = post.ImageUrl;
 
-        if (dto.RemoveImage)
-        {
-            if (!string.IsNullOrEmpty(imageUrl))
-            {
-                var fullPath = Path.Combine("wwwroot", imageUrl.TrimStart('/'));
-                if (System.IO.File.Exists(fullPath))
-                    System.IO.File.Delete(fullPath);
-            }
-            imageUrl = null;
-        }
-        else if (dto.Image is { Length: > 0 })
-        {
-            var uploadsFolder = Path.Combine("wwwroot", "images", "posts");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var ext = Path.GetExtension(dto.Image.FileName).ToLowerInvariant();
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            if (!allowedExtensions.Contains(ext))
-                return BadRequest("Invalid image file type.");
-
-            var fileName = Guid.NewGuid().ToString() + ext;
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Image.CopyToAsync(stream);
-            }
-
-            imageUrl = "/images/posts/" + fileName;
-        }
-
-        var success = await _postService.UpdatePostAsync(id, dto.Content, imageUrl);
+        var success = await _postService.UpdatePostAsync(id, dto.Content);
         return success
             ? Ok(await _postService.GetPostByIdAsync(id, user.Id))
             : NotFound("Post not found");
@@ -117,7 +145,7 @@ public class PostController(PostService postService, UserManager<ApplicationUser
         var userId = User.Identity?.IsAuthenticated == true
         ? User.FindFirstValue(ClaimTypes.NameIdentifier)
         : null;
-        var post = await _postService.GetPostByIdAsync(id,userId);
+        var post = await _postService.GetPostByIdAsync(id, userId);
         return Ok(post);
     }
     [HttpDelete("{id}")]
@@ -126,7 +154,7 @@ public class PostController(PostService postService, UserManager<ApplicationUser
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return Unauthorized();
-        var post = await _postService.GetPostByIdAsync(id,user.Id);
+        var post = await _postService.GetPostByIdAsync(id, user.Id);
         if (post == null)
             return NotFound("Post not found.");
         var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
@@ -145,7 +173,7 @@ public class PostController(PostService postService, UserManager<ApplicationUser
         try
         {
             await _postService.VotePostAsync(dto.PostId, userId, dto.Vote);
-            var updatedPost = await _postService.GetPostByIdAsync(dto.PostId,userId);
+            var updatedPost = await _postService.GetPostByIdAsync(dto.PostId, userId);
             return Ok(updatedPost);
         }
         catch (KeyNotFoundException)
@@ -164,34 +192,9 @@ public class PostController(PostService postService, UserManager<ApplicationUser
         if (user == null)
             return Unauthorized();
 
-        if (string.IsNullOrEmpty(dto.Content) && dto.Image == null) {
-            return BadRequest("Either content or image is required.");
-        }
-        string? imagePath = null;
-        if (dto.Image != null && dto.Image.Length > 0)
-        {
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
-            var filePath = Path.Combine("wwwroot/images", fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Image.CopyToAsync(stream);
-            }
-            imagePath = "/images/" + fileName;
-        }
-        try
-        {
-
-            var result = await _postService.ReplyToPostAsync(dto.ParentPostId, dto.Content, user.Id, imagePath);
-            return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
-        }
+        var result = await _postService.ReplyToPostAsync(dto.ParentPostId, dto.Content, user.Id);
+        return Ok(result);
+        
     }
     [HttpGet("{id}/postLikes")]
     [AllowAnonymous]

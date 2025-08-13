@@ -131,7 +131,7 @@ const Header = () =>{
                         <div className="dropdown ">
                             <a className="btn btn-secondary dropdown-toggle border-0 rounded-pill  " href="/" role="button" data-bs-toggle="dropdown" aria-expanded="false" style={{backgroundColor: bg, color : color}}>
                                 <div className="avatar-wrapper ">
-                                <img src={profile?.profileImageUrl} alt="profile" style={{
+                                <img src={profile?.profileImageUrl!} alt="profile" style={{
                                                                                             width: '50px',
                                                                                             height: '40px',
                                                                                             borderRadius: '60%',

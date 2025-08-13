@@ -12,7 +12,7 @@ public class ApplicationUser : IdentityUser
     public string? Bio { get; set; }
 
     public string? ProfileImageUrl { get; set; } = "https://www.redditstatic.com/avatars/avatar_default_02_FF4500.png";
-
+    public string? ProfileImageKey { get; set; }
     public DateTime DateJoined { get; set; } = DateTime.UtcNow;
 
     public int PostCount { get; set; }

@@ -112,7 +112,7 @@ const Home: React.FC<HomeProps>= ({SortBy}) => {
                 <div className="card shadow-sm">
                     <div className="card-body recent-activity">
                         <button onClick={handleDelete} className="align-items-end justify-content-center d-flex ms-5">Clear History</button>
-                        <h5 className="card-title mb-3">Recent Activity</h5>
+                        <h5 className="card-title mb-3 text-black">Recent Activity</h5>
                         {loading2 && <p>Loading...</p>}
                         <ul className="list-group">
                             {items123.map(v => (

@@ -7,7 +7,8 @@ export interface Profile{
     username: string,
     email: string,
     bio : string,
-    profileImageUrl : string,
+    profileImageUrl : string | null,
+    profileImageKey: string | null
     dateJoined: Date,
     postCount: number,
     reputation: number,
@@ -19,7 +20,7 @@ export interface EditProfileDto{
     firstName: string,
     lastName: string,
     bio: string,
-    profileImageUrl: string
+    profileImageUrl: string,
 }
 export interface ProfileModel{
     profile: Profile[],

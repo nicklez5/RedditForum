@@ -44,7 +44,8 @@ const ThreadItem = ({thread} : {thread: Thread}) => {
                         id: selectedThread.id,
                         title: selectedThread.title,
                         content: selectedThread.content,
-                        imageUrl: selectedThread.imageUrl
+                        imageUrl: selectedThread.imageUrl,
+                        videoUrl: selectedThread.videoUrl,
                     }}
                     show={showModal}
                     onClose={() => setShowModal(false)}

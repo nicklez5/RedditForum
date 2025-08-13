@@ -16,6 +16,8 @@ const NewThread = () => {
     const [content, setContent] = useState('');
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [video, setVideo] = useState<File | null>(null);
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [error,setError] = useState<string | null>(null);
     const [showError, setShowError] = useState(false);
     const [selectedForum , setSelectedForum] = useState<Forum | null>(null);
@@ -63,6 +65,7 @@ const NewThread = () => {
             content: content,
             forumId: selectedForum!.id,
             image: image,
+            video: video
         }
         try{
             setLoading(true);
@@ -161,7 +164,39 @@ const NewThread = () => {
             </div>
             )}
         </Form.Group>
+        <Form.Group controlId="formVideo" className="mb-3">
+            <Form.Label>Upload Video (optional)</Form.Label>
+            <Form.Control
+                type="file"
+                accept="video/*"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0] || null;
+                    setVideo(file);
+                    if(file){
+                        const previewUrl = URL.createObjectURL(file);
+                        setVideoPreview(previewUrl)
+                    }else{
+                        setVideoPreview(null);
+                    }
+                }}/>
+                <br/>
+                {videoPreview && (
+                    <div>
+                        <video width="400" controls>
+                            <source src={videoPreview} />
+                        </video>
+                        <Button variant="outline-danger"
+                            size="sm"
+                            onClick={() => {
+                                setVideo(null);
+                                setVideoPreview(null)
+                            }} className="ms-2">
+                                Remove Video
+                            </Button>
 
+                    </div>
+                )}
+        </Form.Group>
         {/* Content */}
         <Form.Group className="mb-3">
             <Form.Label>Body text</Form.Label>

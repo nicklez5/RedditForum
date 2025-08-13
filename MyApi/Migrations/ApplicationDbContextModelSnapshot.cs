@@ -238,6 +238,9 @@ namespace MyApi.Migrations
                     b.Property<int>("PostCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ProfileImageKey")
+                        .HasColumnType("text");
+
                     b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
@@ -278,9 +281,24 @@ namespace MyApi.Migrations
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
 
+                    b.Property<string>("BannerContentType")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("BannerHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("BannerKey")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("BannerSizeBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("BannerUrl")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
+
+                    b.Property<int?>("BannerWidth")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -288,9 +306,24 @@ namespace MyApi.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("IconContentType")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("IconHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("IconKey")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("IconSizeBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("IconUrl")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
+
+                    b.Property<int?>("IconWidth")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -448,8 +481,23 @@ namespace MyApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ImageContentType")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ImageHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageKey")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ImageSizeBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
+
+                    b.Property<int?>("ImageWidth")
+                        .HasColumnType("integer");
 
                     b.Property<int>("LikeCount")
                         .HasColumnType("integer");
@@ -459,6 +507,21 @@ namespace MyApi.Migrations
 
                     b.Property<int>("ThreadId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("VideoContentType")
+                        .HasColumnType("text");
+
+                    b.Property<double?>("VideoDurationSec")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("VideoKey")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("VideoSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("VideoUrl")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -559,14 +622,44 @@ namespace MyApi.Migrations
                     b.Property<int>("ForumId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ImageContentType")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ImageHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageKey")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ImageSizeBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
+
+                    b.Property<int?>("ImageWidth")
+                        .HasColumnType("integer");
 
                     b.Property<int>("LikeCount")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VideoContentType")
+                        .HasColumnType("text");
+
+                    b.Property<double?>("VideoDurationSec")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("VideoKey")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("VideoSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("VideoUrl")
                         .HasColumnType("text");
 
                     b.HasKey("Id");

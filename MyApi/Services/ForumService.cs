@@ -8,10 +8,11 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http.HttpResults;
 namespace MyApi.Services;
 
-public class ForumService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+public class ForumService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IObjectStorageService storage)
 {
     private readonly ApplicationDbContext _context = context;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly IObjectStorageService _storage = storage;
 
     public async Task<bool> SubscribeUserToForumAsync(string userId, int forumId)
     {
@@ -52,15 +53,77 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
         }
         return true;
     }
-    public async Task<Forum> CreateForumAsync(string title, string description, string? iconUrl, string? bannerUrl, string authorId)
+    public Task<(string key, string url, string publicUrl)> PresignIcon(string contentType, string fileName)
+    {
+        var (key, url, publicUrl) = _storage.PresignPut("images/forums/icons", contentType, fileName);
+        return Task.FromResult((key, url, publicUrl ));
+    }
+    public Task<(string key, string url, string publicUrl)> PresignBanner(string contentType, string fileName)
+    {
+        var (key, url, publicUrl) = _storage.PresignPut("images/forums/banners", contentType, fileName);
+        return Task.FromResult((key, url, publicUrl ));
+    }
+    public async Task<bool> AttachIconAsync(int id, string Key, string Url, string ContentType, long SizeBytes, int? Width, int? Height)
+    {
+        var forum = await _context.Forums.FindAsync(id);
+        if (forum == null) return false;
+        if (!string.IsNullOrEmpty(forum.IconKey) && forum.IconKey != Key)
+            await _storage.DeleteAsync(forum.IconKey);
+        forum.IconKey = Key;
+        forum.IconUrl = Url;
+        forum.IconContentType = ContentType;
+        forum.IconSizeBytes = SizeBytes;
+        forum.IconWidth = Width;
+        forum.IconHeight = Height;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> DeleteIconAsync(int id)
+    {
+        var forum = await _context.Forums.FindAsync(id);
+        if (forum == null) return false;
+        if (!string.IsNullOrEmpty(forum.IconKey))
+            await _storage.DeleteAsync(forum.IconKey);
+        forum.IconKey = forum.IconUrl = forum.IconContentType = null;
+        forum.IconSizeBytes = null; forum.IconWidth = null; forum.IconHeight = null;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> AttachBannerAsync(int id, string Key, string Url, string ContentType, long SizeBytes, int? Width, int? Height)
+    {
+        var forum = await _context.Forums.FindAsync(id);
+        if (forum == null) return false;
+        if (!string.IsNullOrEmpty(forum.BannerKey) && forum.BannerKey != Key)
+            await _storage.DeleteAsync(forum.BannerKey);
+        forum.BannerKey = Key;
+        forum.BannerUrl = Url;
+        forum.BannerContentType = ContentType;
+        forum.BannerSizeBytes = SizeBytes;
+        forum.BannerWidth = Width;
+        forum.BannerHeight = Height;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> DeleteBannerAsync(int id)
+    {
+        var forum = await _context.Forums.FindAsync(id);
+        if (forum == null) return false;
+        if (!string.IsNullOrEmpty(forum.BannerKey))
+            await _storage.DeleteAsync(forum.BannerKey);
+        forum.BannerKey = forum.BannerUrl = forum.BannerContentType = null;
+        forum.BannerSizeBytes = null; forum.BannerWidth = null; forum.BannerHeight = null;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    public async Task<Forum> CreateForumAsync(string title, string description, string authorId)
     {
         var forum = new Forum
         {
             Title = title,
             Description = description,
             ApplicationUserId = authorId,
-            IconUrl = iconUrl,
-            BannerUrl = bannerUrl,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -84,6 +147,8 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             Title = f.Title!,
             Description = f.Description,
             IconUrl = f.IconUrl,
+            IconKey = f.IconKey,
+            BannerKey = f.BannerKey,
             BannerUrl = f.BannerUrl,
             Threads = f.Threads!.Select(t => new ThreadDto
             {
@@ -126,6 +191,8 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             Title = f.Title!,
             Description = f.Description,
             IconUrl = f.IconUrl,
+            IconKey = f.IconKey,
+            BannerKey = f.BannerKey,
             BannerUrl = f.BannerUrl,
             Threads = f.Threads!.Select(t => new ThreadDto
             {
@@ -171,6 +238,8 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             Title = f.Title ?? "",
             Description = f.Description ?? "",
             IconUrl = f.IconUrl ?? "",
+            IconKey = f.IconKey ?? "",
+            BannerKey = f.BannerKey ?? "",
             BannerUrl = f.BannerUrl ?? "",
             Threads = f.Threads != null ? f.Threads.Select(t => new ThreadDto
             {
@@ -215,6 +284,8 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             Description = forum.Description ?? "",
             BannerUrl = forum.BannerUrl ?? "",
             IconUrl = forum.IconUrl ?? "",
+            BannerKey = forum.BannerKey ?? "",
+            IconKey = forum.IconKey ?? "",
             Threads = forum.Threads != null ? forum.Threads.Select(t => new ThreadDto
             {
                 Id = t.Id,
@@ -239,21 +310,13 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             }).ToList() ?? new List<UserDto>(),
         };
     }
-    public async Task<bool> UpdateForumAsync(int id, string title, string description, string? bannerUrl, string? iconUrl, bool removeBanner = false, bool removeIcon = false)
+    public async Task<bool> UpdateForumAsync(int id, string title, string? description)
     {
         var forum = await _context.Forums.FindAsync(id);
         if (forum == null) return false;
         forum.Title = title ?? forum.Title;
-        forum.Description = description ?? forum.Description;
-        if (removeBanner)
-            forum.BannerUrl = null;
-        else if (bannerUrl != null)
-            forum.BannerUrl = bannerUrl;
-
-        if (removeIcon)
-            forum.IconUrl = null;
-        else if (iconUrl != null)
-            forum.IconUrl = iconUrl;
+        forum.Description = description;
+        
         
         await _context.SaveChangesAsync();
         return true;
@@ -309,6 +372,11 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
                 AuthorUsername = r.Author?.UserName ?? "Unknown",
                 ThreadId = r.ThreadId,
                 ParentPostId = r.ParentPostId,
+                ImageUrl = r.ImageUrl,
+                ImageKey = r.ImageKey,
+                VideoKey = r.VideoKey,
+                VideoUrl = r.VideoUrl,
+                VideoContentType = r.VideoContentType,
                 CreatedAt = r.CreatedAt,
                 LikeCount = likeCounts.GetValueOrDefault(r.Id, 0),
                 Replies = BuildReplyTree(allReplies,likeCounts, r.Id)
@@ -336,6 +404,13 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             ForumIconUrl = t.Forum.IconUrl,
             ForumTitle = t.Forum!.Title!,
             AuthorId = t.ApplicationUserId,
+            VideoUrl = t.VideoUrl,
+            VideoKey = t.VideoKey,
+            VideoContentType = t.VideoContentType,
+            ImageUrl = t.ImageUrl,
+            ImageKey = t.ImageKey,
+            ImageHeight = t.ImageHeight,
+            ImageWidth = t.ImageWidth,
             AuthorUsername = t.Author!.UserName!,
             PostCount = t.Posts!.Count,
             LikeCount = t.Votes?.Count ?? 0,
@@ -369,6 +444,11 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             Content = post.Content!,
             AuthorUsername = post.Author?.UserName ?? "Unknown",
             ThreadId = post.ThreadId,
+            ImageUrl = post.ImageUrl,
+            ImageKey = post.ImageKey,
+            VideoKey = post.VideoKey,
+            VideoUrl = post.VideoUrl,
+            VideoContentType = post.VideoContentType,
             CreatedAt = post.CreatedAt,
             LikeCount = likeCountz.GetValueOrDefault(post.Id, 0),
             Replies = BuildReplyTree(replies,likeCountz, post.Id)

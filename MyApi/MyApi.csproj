@@ -27,7 +27,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
   </ItemGroup>
    <!-- Build React client and copy to wwwroot -->
-<Target Name="BuildClient" AfterTargets="Build" Condition="'$(SkipClientBuild)'!='true' AND Exists('$(MSBuildProjectDirectory)/../FrontEnd/package.json')">
+<Target Name="BuildClient" AfterTargets="Publish" Condition="'$(SkipClientBuild)'!='true' AND Exists('$(MSBuildProjectDirectory)/../FrontEnd/package.json')">
   <Message Text="Building client in $(MSBuildProjectDirectory)/../FrontEnd" Importance="high" />
   <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />
   <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />

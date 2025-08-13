@@ -9,10 +9,12 @@ namespace MyApi.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class ProfileController(UserManager<ApplicationUser> userManager, ProfileService profileService) : ControllerBase
+public class ProfileController(UserManager<ApplicationUser> userManager, ProfileService profileService, IObjectStorageService storage) : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly ProfileService _profileService = profileService;
+
+    private readonly IObjectStorageService _storage = storage;
 
     [HttpPut("update")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto model)
@@ -25,31 +27,52 @@ public class ProfileController(UserManager<ApplicationUser> userManager, Profile
         user.FirstName = model.FirstName ?? user.FirstName;
         user.LastName = model.LastName ?? user.LastName;
         user.Bio = model.Bio ?? user.Bio;
-        user.ProfileImageUrl = model.ProfileImageUrl ?? user.ProfileImageUrl;
+
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
             return BadRequest(result.Errors);
         return Ok("Profile updated successfully");
     }
-    [HttpPost("upload-profile-image")]
-    public async Task<IActionResult> UploadProfileImage(IFormFile file)
+    [HttpPost("presign-avatar")]
+    public async Task<IActionResult> PresignAvatar([FromQuery] string contentType, [FromQuery] string fileName)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("No file uploaded.");
-
-        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot","uploads");
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-        var filePath = Path.Combine(uploadsFolder, fileName);
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-        var fileUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
-        return Ok(new { url = fileUrl });
+        if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("contentType must be image/*");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var folder = $"images/users/{userId}/avatars";
+        var (key, url, publicUrl) = _storage.PresignPut(folder, contentType, fileName);
+        return Ok(new { key, url, publicUrl });
     }
+    [HttpPost("avatar")]
+    public async Task<IActionResult> SetAvatar([FromBody] AttachImageDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        if (!string.IsNullOrEmpty(user.ProfileImageKey) && user.ProfileImageKey != dto.Key)
+            await _storage.DeleteAsync(user.ProfileImageKey);
+        user.ProfileImageUrl = dto.Url;
+        user.ProfileImageKey = dto.Key;
+        await _userManager.UpdateAsync(user);
+        return Ok("Profile updated successfully");
+    }
+    [HttpDelete("avatar")]
+    public async Task<IActionResult> DeleteAvatar()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null) return Unauthorized();
+
+        if (!string.IsNullOrEmpty(user.ProfileImageKey))
+            await _storage.DeleteAsync(user.ProfileImageKey!);
+
+        user.ProfileImageKey = user.ProfileImageUrl  = null;
+
+
+        await _userManager.UpdateAsync(user);
+        return NoContent();
+    }
+    
     [HttpGet("me")]
     public async Task<IActionResult> GetMyProfile()
     {
@@ -72,6 +95,7 @@ public class ProfileController(UserManager<ApplicationUser> userManager, Profile
             Email = user.Email,
             Bio = user.Bio,
             ProfileImageUrl = user.ProfileImageUrl,
+            ProfileImageKey = user.ProfileImageKey,
             DateJoined = user.DateJoined,
             PostCount = user.PostCount,
             Reputation = user.Reputation,
@@ -95,6 +119,7 @@ public class ProfileController(UserManager<ApplicationUser> userManager, Profile
             Email = user.Email,
             Bio = user.Bio,
             ProfileImageUrl = user.ProfileImageUrl,
+            ProfileImageKey = user.ProfileImageKey,
             DateJoined = user.DateJoined,
             PostCount = user.PostCount,
             Reputation = user.Reputation,

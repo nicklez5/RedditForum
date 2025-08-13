@@ -10,8 +10,6 @@ public class CreatePostDto
     [Required]
     public int ThreadId { get; set; }
 
-    [FromForm]
-    public IFormFile? Image { get; set; }
 
     public int? ParentPostId { get; set; }
 }

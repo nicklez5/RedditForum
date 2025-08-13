@@ -24,7 +24,16 @@ const PostItem = ({post} : {post : Post}) => {
             <span className="small">Post Image</span>
             <div className="d-flex align-items-center justify-content-center">
             
-            <img src={toAbs(post.imageUrl)} alt="" width="300" className=""/>
+            <img src={toAbs(post.imageUrl!)} alt="" width="300" className=""/>
+            </div>
+            <hr/>
+            <span className="small">Post Video</span>
+            <div className="d-flex align-items-center justify-content-center">
+            {post.videoKey ? <>
+            <video width="400" controls>
+                <source src={toAbs(post.videoUrl!)} />
+            </video></> : <></>}
+            
             </div>
             <hr/>
             <span className="small">Post Date</span>
@@ -51,7 +60,8 @@ const PostItem = ({post} : {post : Post}) => {
                 post={{
                     id: post.id,
                     content: post.content,
-                    imageUrl: post.imageUrl
+                    imageUrl: post.imageUrl,
+                    videoUrl: post.videoUrl,
                 }}
                 show={showModal}
                 onClose={() => setShowModal(false)}

@@ -39,8 +39,8 @@ const NewForum = () => {
         const dto: CreateForumDto ={
             title: title,
             description: description,
-            icon: icon,
-            banner: banner
+            iconFile: icon!,
+            bannerFile: banner!
         }
         try{
             setLoading(true);

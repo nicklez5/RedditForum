@@ -11,6 +11,8 @@ using MyApi.Models;
 using MyApi.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
+using Amazon.S3;
+using Amazon.S3.Model;
 var builder = WebApplication.CreateBuilder(args);
 var allowedOrigins = builder.Configuration["Cors:Origins"]?
     .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -139,6 +141,18 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
     o.KnownNetworks.Clear();
     o.KnownProxies.Clear();
 });
+builder.Services.AddSingleton<IAmazonS3>(_ =>
+{
+    var cfg = new AmazonS3Config
+    {
+        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(
+            Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-2"
+        )
+    };
+    return new AmazonS3Client(cfg);
+});
+builder.Services.AddSingleton<IVideoStorageService, S3VideoStorageService>();
+builder.Services.AddSingleton<IObjectStorageService, S3ObjectStorageService>();
 // Add services to the container.
 var app = builder.Build();
 

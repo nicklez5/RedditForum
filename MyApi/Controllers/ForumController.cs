@@ -7,7 +7,8 @@ using MyApi.Models;
 using MyApi.Services;
 
 namespace MyApi.Controllers;
-
+public record PresignResponse(string Key, string Url, string PublicUrl);
+public record AttachImageDto( string Key, string Url, string ContentType, long SizeBytes, int? Width, int? Height);
 [ApiController]
 [Route("api/[controller]")]
 public class ForumController(UserManager<ApplicationUser> userManager,ForumService forumService) : ControllerBase
@@ -19,36 +20,8 @@ public class ForumController(UserManager<ApplicationUser> userManager,ForumServi
     {
         var userId = _userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
-        string? iconUrl = null;
-        string? bannerUrl = null;
-        if (dto.Icon != null && dto.Icon.Length > 0)
-        {
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "icon", "forums");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Icon.FileName);
-            var filePath = Path.Combine("wwwroot/icon/forums", fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Icon.CopyToAsync(stream);
-            }
-            iconUrl = "/icon/forums/" + fileName;
-        }
-        if (dto.Banner != null && dto.Banner.Length > 0)
-        {
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "banner", "forums");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Banner.FileName);
-            var filePath = Path.Combine("wwwroot/banner/forums", fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Banner.CopyToAsync(stream);
-            }
-            bannerUrl = "/banner/forums/" + fileName;
-        }
-        var forum = await _forumService.CreateForumAsync(dto.Title, dto.Description!, iconUrl,bannerUrl, userId);
+        
+        var forum = await _forumService.CreateForumAsync(dto.Title, dto.Description!, userId);
         return Ok(forum);
     }
     [HttpPut("{id}")]
@@ -65,66 +38,103 @@ public class ForumController(UserManager<ApplicationUser> userManager,ForumServi
         {
             return Unauthorized("You are not the admin of this forum");
         }
-        string? iconUrl = forum.IconUrl;
-        string? bannerUrl = forum.BannerUrl;
-        if (dto.RemoveIcon)
-        {
-            if (!string.IsNullOrEmpty(iconUrl))
-            {
-                var fullPath = Path.Combine("wwwroot", iconUrl.TrimStart('/'));
-                if (System.IO.File.Exists(fullPath))
-                    System.IO.File.Delete(fullPath);
-                iconUrl = null;
-            }
-        }
-        if (dto.RemoveBanner)
-        {
-            if (!string.IsNullOrEmpty(bannerUrl))
-            {
-                var fullPath = Path.Combine("wwwroot", bannerUrl.TrimStart('/'));
-                if (System.IO.File.Exists(fullPath))
-                    System.IO.File.Delete(fullPath);
-                bannerUrl = null;
-            }
-        }
-        if (dto.Banner is { Length: > 0 })
-        {
-            var uploadsFolder = Path.Combine("wwwroot", "banner", "forums");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-            var ext = Path.GetExtension(dto.Banner.FileName).ToLowerInvariant();
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            if (!allowedExtensions.Contains(ext))
-                return BadRequest("Invalid image file type.");
-            var bannerFileName = Guid.NewGuid().ToString() + ext;
-            var bannerPath = Path.Combine(uploadsFolder, bannerFileName);
-
-            using (var stream = new FileStream(bannerPath, FileMode.Create))
-            {
-                await dto.Banner.CopyToAsync(stream);
-            }
-            bannerUrl = "/banner/forums/" + bannerFileName;
-        }
-        if (dto.Icon is { Length: > 0 })
-        {
-            var uploadsFolder = Path.Combine("wwwroot", "icon", "forums");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-            var ext = Path.GetExtension(dto.Icon.FileName).ToLowerInvariant();
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            if (!allowedExtensions.Contains(ext))
-                return BadRequest("Invalid image file type.");
-            var iconFileName = Guid.NewGuid().ToString() + ext;
-            var iconPath = Path.Combine(uploadsFolder, iconFileName);
-
-            using (var stream = new FileStream(iconPath, FileMode.Create))
-            {
-                await dto.Icon.CopyToAsync(stream);
-            }
-            iconUrl = "/icon/forums/" + iconFileName;
-        }
-        var success = await _forumService.UpdateForumAsync(id, dto.Title, dto.Description, bannerUrl, iconUrl, dto.RemoveBanner, dto.RemoveIcon);
+        
+        var success = await _forumService.UpdateForumAsync(id, dto.Title, dto.Description);
         return success ? Ok(await _forumService.GetForumByIdAsync(id)) : NotFound("Forum not found");
+    }
+    [HttpPost("presign/icon")]
+    public async Task<ActionResult<PresignResponse>> PresignIcon([FromQuery] string contentType, [FromQuery] string? fileName)
+    {
+        if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("contentType must be image/*");
+
+        var (key,url,publicUrl) = await _forumService.PresignIcon(contentType, fileName);
+        return Ok(new PresignResponse(key, url, publicUrl ));
+        
+    }
+    [HttpPost("presign/banner")]
+    public async Task<ActionResult<PresignResponse>> PresignBanner([FromQuery] string contentType, [FromQuery] string? fileName)
+    {
+        if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("contentType must be image/*");
+
+        var (key,url,publicUrl) = await _forumService.PresignBanner(contentType, fileName);
+        return Ok(new PresignResponse(key, url, publicUrl ));
+        
+    }
+    [HttpPost("{id}/icon")]
+    public async Task<IActionResult> SetIcon(int id, [FromBody] AttachImageDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var forum = await _forumService.GetForumByIdAsync(id);
+        if (forum == null)
+            return NotFound("Forum not found");
+        if (forum.Author != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+        {
+            return Unauthorized("You are not allowed to delete this forum");
+        }
+        var success = await _forumService.AttachIconAsync(id, dto.Key, dto.Url, dto.ContentType, dto.SizeBytes, dto.Width, dto.Height);
+        return success
+            ? Ok(await _forumService.GetForumByIdAsync(id))
+            : NotFound("Forum not found");
+    }
+    [HttpPost("{id}/banner")]
+    public async Task<IActionResult> SetBanner(int id, [FromBody] AttachImageDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var forum = await _forumService.GetForumByIdAsync(id);
+        if (forum == null)
+            return NotFound("Forum not found");
+        if (forum.Author != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+        {
+            return Unauthorized("You are not allowed to delete this forum");
+        }
+        var success = await _forumService.AttachBannerAsync(id, dto.Key, dto.Url, dto.ContentType, dto.SizeBytes, dto.Width, dto.Height);
+        return success
+            ? Ok(await _forumService.GetForumByIdAsync(id))
+            : NotFound("Forum not found");
+    }
+    [HttpDelete("{id}/banner")]
+    public async Task<IActionResult> DeleteBanner(int id)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+
+        var forum = await _forumService.GetForumByIdAsync(id);
+        if (forum == null)
+            return NotFound("Forum not found");
+        if (forum.Author != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+        {
+            return Unauthorized("You are not allowed to edit this forum");
+        }
+        var success = await _forumService.DeleteBannerAsync(id);
+        return success
+            ? Ok(await _forumService.GetForumByIdAsync(id))
+            : NotFound("Forum not found");
+    }
+    [HttpDelete("{id}/icon")]
+    public async Task<IActionResult> DeleteIcon(int id)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+
+        var forum = await _forumService.GetForumByIdAsync(id);
+        if (forum == null)
+            return NotFound("Forum not found");
+        if (forum.Author != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+        {
+            return Unauthorized("You are not allowed to edit this forum");
+        }
+        var success = await _forumService.DeleteIconAsync(id);
+        return success
+            ? Ok(await _forumService.GetForumByIdAsync(id))
+            : NotFound("Forum not found");
     }
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteForum(int id)

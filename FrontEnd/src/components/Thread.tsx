@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import { useStoreActions, useStoreState } from "../interface/hooks";
 import { Spinner, Card, ListGroup, Button, Form } from "react-bootstrap";
@@ -11,6 +11,7 @@ import { faArrowUp, faArrowDown, faComment, faEllipsis, faImage} from "@fortawes
 import CommentForm from "./CommentForm";
 import { EditThreadDto } from "../interface/ThreadModel";
 import useVisitTracker from "../hooks/useVisitTracker";
+import { clear } from "console";
 const ThreadPage = () => {
   const {darkMode} = useTheme();
   const loggedIn = useStoreState((s) => s.user.loggedIn);
@@ -33,6 +34,15 @@ const ThreadPage = () => {
 
   const [content, setContent] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [imagePreview , setImagePreview] = useState< string | null> (null);
+  const [video,setVideo] = useState<File | null>(null);
+  const [ videoPreview, setVideoPreview] = useState<string | null>(null);
+  const revokeImgRef = useRef<string | null>(null);
+  const revokeVidRef = useRef<string|null>(null);
+  const revokePostImgRef = useRef<string | null>(null);
+  const revokePostVideoRef = useRef<string | null>(null);
+  const revokeThreadImgRef = useRef<string | null>(null);
+  const revokeThreadVideoRef = useRef<string | null>(null);
   const [threadId, setThreadId] = useState<number>(parseInt(id!))
   const [parentPostId, setParentPostId] = useState<number | null>(null);
   const [postVoteCount, setPostVoteCount] = useState<Record<number,number>>({});
@@ -40,13 +50,19 @@ const ThreadPage = () => {
   const [EditPostId, setEditPostId] = useState(0)
   const [EditContent, setEditContent] = useState('')
   const [EditPostImage, setEditPostImage] = useState<File | null>(null);
+  const [EditPostImagePreview, setEditPostImagePreview] = useState<string | null>(null);
+  const [EditPostVideoPreview, setEditPostVideoPreview] = useState<string | null>(null);
   const [EditRemoveImage, setEditRemoveImage] = useState(false);
-
+  const [EditPostVideo, setEditPostVideo] = useState<File | null>(null);
+  const [EditPostRemoveVideo, setEditPostRemoveVideo] = useState(false);
   const [EditThreadId, setEditThreadId] = useState(0)
   const [EditThreadContent, setEditThreadContent] = useState('')
   const [EditThreadTitle, setEditThreadTitle] = useState('');
   const [EditThreadImage, setEditThreadImage] = useState<File | null>(null);
   const [EditThreadImagePreview , setEditThreadImagePreview] = useState<string | null>(null);
+  const [EditThreadVideoPreview, setEditThreadVideoPreview] = useState<string | null>(null);
+  const [EditThreadVideo, setEditThreadVideo] = useState<File | null>(null);
+  const [EditThreadRemoveVideo, setEditThreadRemoveVideo] = useState(false);
   const [EditThreadRemoveImage, setEditThreadRemoveImage] = useState(false);
   const [ShowThreadEditModal, setShowThreadEditModal] = useState(false);
   const [ShowEditModal, setShowEditModal] = useState(false)
@@ -64,6 +80,24 @@ const ThreadPage = () => {
   const toAbs = (u: string) =>
     /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
   useVisitTracker({type: "thread", id: Number(id)});
+  const clearPreviews = () => {
+    if (revokeImgRef.current) { URL.revokeObjectURL(revokeImgRef.current); revokeImgRef.current = null; }
+    if (revokeVidRef.current) { URL.revokeObjectURL(revokeVidRef.current); revokeVidRef.current = null; }
+    setImage(null); setImagePreview(null);
+    setVideo(null); setVideoPreview(null);
+};
+  const clearPostPreviews = () => {
+    if(revokePostImgRef.current) { URL.revokeObjectURL(revokePostImgRef.current); revokePostImgRef.current = null;}
+    if(revokePostVideoRef.current) { URL.revokeObjectURL(revokePostVideoRef.current); revokePostVideoRef.current = null;}
+    setEditPostImage(null); setEditPostImagePreview(null);
+    setEditPostVideo(null); setEditPostVideoPreview(null);
+  }
+  const clearThreadPreviews = () => {
+    if(revokeThreadImgRef.current) { URL.revokeObjectURL(revokeThreadImgRef.current); revokeThreadImgRef.current = null;}
+    if(revokeThreadVideoRef.current) {URL.revokeObjectURL(revokeThreadVideoRef.current); revokeThreadVideoRef.current = null;}
+    setEditThreadImage(null); setEditThreadImagePreview(null);
+    setEditThreadVideo(null); setEditThreadVideoPreview(null);
+  }
   useEffect(() => {
   if (id) {
     fetchThread(parseInt(id));
@@ -88,24 +122,75 @@ const ThreadPage = () => {
     if(Thread?.imageUrl){
       setEditThreadImagePreview(toAbs(Thread.imageUrl))
     }
-  },[Thread])
-  const handleSubmit = async(e: React.FormEvent) => {
-    e.preventDefault();
-    const dto: CreatePostDto = {
-      content,
-      threadId,
-      parentPostId,
-      image
+    if(Thread?.videoUrl){
+      setEditThreadVideoPreview(toAbs(Thread.videoUrl))
     }
-    await createPost(dto);
-    await fetchThread(parseInt(id!))
+  },[Thread])
+  useEffect(() => () => {clearPreviews(); clearPostPreviews(); clearThreadPreviews()}, []);
+  const handleReplyFileChange = (file: File | null) => {
+    clearPreviews();
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+
+    if (file.type.startsWith("image/")) {
+      setImage(file);
+      setImagePreview(url);
+      revokeImgRef.current = url;
+    } else if (file.type.startsWith("video/")) {
+      setVideo(file);
+      setVideoPreview(url);
+      revokeVidRef.current = url;
+    } else {
+      // optional: show a toast/error “Only images or videos are allowed”
+      URL.revokeObjectURL(url);
+    }
+  };
+  const handlePostFileChange = (file: File | null) => {
+      clearPostPreviews();
+      if(!file) return;
+      const url = URL.createObjectURL(file);
+
+      if (file.type.startsWith("image/")) {
+        setEditPostImage(file);
+        setEditPostImagePreview(url);
+        revokePostImgRef.current = url;
+      } else if (file.type.startsWith("video/")) {
+        setEditPostVideo(file);
+        setEditPostVideoPreview(url);
+        revokePostVideoRef.current = url;
+      } else {
+        // optional: show a toast/error “Only images or videos are allowed”
+        URL.revokeObjectURL(url);
+      }
   }
-  const handleEditReply = async(replyId: number, newContent: string, editRemoveImage: boolean, editImage: File | null) => {
+  const handleThreadFileChange = (file: File | null) => {
+    clearThreadPreviews();
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+
+    if (file.type.startsWith("image/")) {
+      setEditThreadImage(file);
+      setEditThreadImagePreview(url);
+      revokeThreadImgRef.current = url;
+    } else if (file.type.startsWith("video/")) {
+      setEditThreadVideo(file);
+      setEditThreadVideoPreview(url);
+      revokeThreadVideoRef.current = url;
+    } else {
+      // optional: show a toast/error “Only images or videos are allowed”
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  const handleEditReply = async(replyId: number, newContent: string, editRemoveImage: boolean, editImage: File | null, editRemoveVideo: boolean, editVideo: File|null) => {
     const dto: EditPostDto = {
       id: replyId,
       content: newContent,
       removeImage: editRemoveImage,
-      image: editImage
+      image: editImage,
+      video: editVideo,
+      removeVideo: editRemoveVideo
     }
     await editPost(dto);
     await fetchThread(parseInt(id!));
@@ -117,6 +202,8 @@ const ThreadPage = () => {
       content: EditContent,
       removeImage: EditRemoveImage,
       image: EditPostImage,
+      removeVideo: EditPostRemoveVideo,
+      video: EditPostVideo,
     }
     await editPost(dto)
     await fetchThread(parseInt(id!))
@@ -128,17 +215,14 @@ const ThreadPage = () => {
       content: EditThreadContent,
       title: EditThreadTitle,
       removeImage: EditThreadRemoveImage,
-      image: EditThreadImage
+      image: EditThreadImage,
+      video: EditThreadVideo,
+      removeVideo: EditThreadRemoveVideo,
     }
     await editThread(dto)
     await fetchThread(parseInt(id!));
   }
-  const getImageUrl = (image: File | null): string | null => {
-    if(image){
-      return URL.createObjectURL(image);
-    }
-    return null;
-  }
+
   const handlePostVote = async(postId: number, vote: number) => {
     if (!loggedIn) return;
     const currentVote = postUserVotes[postId] || 0;
@@ -159,10 +243,7 @@ const ThreadPage = () => {
 
     // Optimistically update vote count
   }
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if(file) setImage(file);
-  }
+
   const handleVote = async (vote: number) => {
     if (!loggedIn || !id) return;
 
@@ -178,17 +259,10 @@ const ThreadPage = () => {
     }
     fetchThread(parseInt(id))
   };
-  const handlePost = async(threadId: number, content:string ) => {
-    try{
-      await createPost({content: content, threadId: Thread!.id, parentPostId: null})
-      if(id) fetchThread(parseInt(id));
-    }catch(err){
-      console.error("Post failed:", err);
-    }
-  }
-  const handleReply = async (parentId: number, content: string, image: File | null) => {
+
+  const handleReply = async (parentId: number, content: string, image: File | null, video: File| null) => {
     try {
-        await submitReply({ parentPostId: parentId, content, image});
+        await submitReply({ parentPostId: parentId, content, image,video});
         if (id) fetchThread(parseInt(id));
     } catch (err) {
         console.error("Reply failed:", err);
@@ -211,10 +285,8 @@ const ThreadPage = () => {
   const handleReplySubmit = async (postId: number, e: React.FormEvent) => {
     e.preventDefault();
     const reply = replyStates[postId];
-    if (!reply?.text.trim()) return;
-
     try {
-      await submitReply({ parentPostId: postId, content: reply.text });
+      await submitReply({ parentPostId: postId, content: reply.text, image: image, video: video});
       setReplyStates((prev) => ({
         ...prev,
         [postId]: { show: false, text: "" },
@@ -270,8 +342,15 @@ const ThreadPage = () => {
               <img
                 src={toAbs(Thread.imageUrl)}
                 alt="Thread Image"
-                style={{ maxWidth: "200px", borderRadius: "8px" }}
+                style={{ maxWidth: "400px", borderRadius: "8px" }}
               />
+            </div>
+          )}
+          {Thread.videoUrl && (
+            <div className="ms-3">
+              <video width="400" controls>
+                <source src={toAbs(Thread.videoUrl)} type={Thread.videoContentType ?? 'video/mp4'} />
+              </video>
             </div>
           )}
           <Card.Subtitle className="mb-2">
@@ -335,40 +414,35 @@ const ThreadPage = () => {
                   <input 
                     id="thread-upload"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     className="d-none"
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const file = e.target.files?.[0] ?? null;
-                      setEditThreadImage(file);
-                      setEditThreadRemoveImage(false);
-                      if(file){
-                        const previewURL = URL.createObjectURL(file);
-                        setEditThreadImagePreview(previewURL)
-                      }else{
-                        setEditThreadImagePreview(null);
-                      }
+                      handleThreadFileChange(file);
                     }}
                     />
                     <br/>
                     {EditThreadImagePreview && (
-                      <div>
+                      <div className="mt-2">
                       <img
                         src={EditThreadImagePreview}
                         alt="Preview"
                         style={{maxWidth: "200px" , borderRadius: "5px" }}
                       />
                       <Button
-                        variant="outline-danger"
+                        variant="outline-secondary"
                         size="sm"
-                        onClick={() => {
-                          setEditThreadImage(null);
-                          setEditThreadRemoveImage(true);
-                          setEditThreadImagePreview(null);
-                        }}
+                        onClick={clearThreadPreviews}
                         className="ms-2"
                         >
-                          Remove Image
+                          Remove
                         </Button>
+                      </div>
+                    )}
+                    {EditThreadVideoPreview  && (
+                      <div className="mt-2">
+                        <video src={EditThreadVideoPreview} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}} />
+                        <Button size="sm" variant="outline-secondary" className="mb-3 ms-2" onClick={clearThreadPreviews}>Remove</Button>
                       </div>
                     )}
                     <div className="d-flex justify-content-end gap-2">
@@ -398,6 +472,9 @@ const ThreadPage = () => {
               <p>{post.content}</p>
               {post.imageUrl && (
                 <img src={toAbs(post.imageUrl)} alt="Uploaded" style={{ maxWidth: "100%" }} />
+              )}
+              {post.videoUrl && (
+                <video src={toAbs(post.videoUrl)} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}} />
               )}
               <div className="d-flex align-items-center gap-3 mt-1">
                 <div className="d-flex align-items-center gap-2">
@@ -451,19 +528,30 @@ const ThreadPage = () => {
                     <input
                       id="upload"
                       type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        setEditPostImage(e.target.files?.[0] ?? null);
-                        setEditRemoveImage(false);
+                      accept="image/*,video/*"
+                      className="mt-1"
+                      onChange={(e:React.ChangeEvent<HTMLInputElement>) => {
+                        const file = e.currentTarget.files?.[0] ?? null;
+                        handlePostFileChange(file)
                       }}
                       />
                       <span className={`${darkMode ? 'text-white' : 'text-dark'}`}>Aa</span>
-                      {EditPostImage && (
-                      <img
-                        src={URL.createObjectURL(EditPostImage)}
-                        alt="Preview"
-                        style={{ maxWidth: "200px" }}
-                      />
+                      {EditPostImagePreview && (
+                        <div className="mt-2">
+                          <img
+                            src={EditPostImagePreview}
+                            alt="Preview"
+                            style={{ maxWidth: "200px" }}
+                          />
+                          <Button size="sm" variant="outline-secondary" className="ms-2" onClick={clearPostPreviews}>Remove</Button>
+                        </div>
+                      
+                    )}
+                    {EditPostVideoPreview && (
+                      <div className="mt-2">
+                        <video src={EditPostVideoPreview} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}}/>
+                        <Button size="sm" variant="outline-secondary" className="ms-2" onClick={clearPostPreviews}>Remove</Button>
+                       </div>
                     )}
                       </div>
                     <textarea 
@@ -489,6 +577,22 @@ const ThreadPage = () => {
                       </label>
                       </div>
                     )}
+                    {post.videoUrl && (
+                      <div className="position-relative" style={{maxWidth: "200px"}}>
+                        <video src={toAbs(post.videoUrl)} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}}/>
+                        <label>
+                        <input 
+                          type="checkbox"
+                          checked={EditPostRemoveVideo}
+                          onChange={(e) => {
+                            setEditPostRemoveVideo(e.target.checked);
+                            if (e.target.checked) setEditPostVideo(null);
+                          }}
+                          />
+                          Remove Video
+                      </label>
+                      </div>
+                    )}
                     <div className="d-flex justify-content-end gap-2">
                     <button type="submit">Save</button>
                     <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
@@ -506,6 +610,30 @@ const ThreadPage = () => {
                     onChange={(e) => handleReplyTextChange(post.id, e.target.value)}
                     placeholder="Write your reply..."
                   />
+                  <Form.Control
+                      type="file"
+                      accept="image/*,video/*"
+                      className="mt-1"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const file = e.currentTarget.files?.[0] ?? null;
+                        handleReplyFileChange(file)}
+                      }
+                    />
+
+                    {/* Preview area */}
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img src={imagePreview} alt="preview" style={{ maxWidth: "400px", maxHeight: 240 }} />
+                        <Button size="sm" variant="outline-secondary" className="ms-2" onClick={clearPreviews}>Remove</Button>
+                      </div>
+                    )}
+                    {videoPreview && (
+                      <div className="mt-2">
+                        <video src={videoPreview} controls preload="metadata" style={{ maxWidth: "400px", maxHeight: 320 }} />
+                        <Button size="sm" variant="outline-secondary" className="ms-2" onClick={clearPreviews}>Remove</Button>
+                      </div>
+                    )}
+
                   <Button type="submit" variant="primary" size="sm" className="mt-1">
                     Submit Reply
                   </Button>
@@ -518,12 +646,12 @@ const ThreadPage = () => {
                     <ReplyItem
                       key={reply.id}
                       reply={reply}
-                      onReplySubmit={(parentId, content,image) =>
-                        handleReply(parentId, content, image)
+                      onReplySubmit={(parentId, content,image,video) =>
+                        handleReply(parentId, content, image,video)
                       }
                       onLikeReply={(replyId, voteValue) => likePost({postId: replyId, voteValue})}
-                      onEditReply={(replyId, newContent, editRemoveImage, editImage) => 
-                        handleEditReply(replyId, newContent, editRemoveImage, editImage)
+                      onEditReply={(replyId, newContent, editRemoveImage, editImage, editRemoveVideo, editVideo) => 
+                        handleEditReply(replyId, newContent, editRemoveImage, editImage, editRemoveVideo, editVideo)
                       }
                     />
                   ))}

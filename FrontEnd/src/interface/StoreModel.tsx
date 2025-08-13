@@ -9,6 +9,7 @@ import { MessageModel, messageModel } from "./MessageModel";
 import { profileModel, ProfileModel } from "./ProfileModel";
 import { chatStoreModel, ChatStoreModel } from "./ChatModel";
 import { uiModel, UIModel } from "./UIModel";
+import { uploadModel, UploadModel } from "./UploadModel";
 export interface StoreModel {
     user: UserModel;
     admin: AdminModel;
@@ -20,6 +21,7 @@ export interface StoreModel {
     profile: ProfileModel;
     ui: UIModel;
     chat: ChatStoreModel
+    upload: UploadModel;
 }
 const store = createStore<StoreModel>(
     persist({
@@ -33,6 +35,7 @@ const store = createStore<StoreModel>(
         message: messageModel,
         profile: profileModel,
         chat: chatStoreModel,
+        upload: uploadModel,
     },
     {
         storage: localStorage

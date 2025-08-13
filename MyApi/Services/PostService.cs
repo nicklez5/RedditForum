@@ -8,12 +8,13 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace MyApi.Services;
 
-public class PostService(ApplicationDbContext context, NotificationService notificationService)
+public class PostService(ApplicationDbContext context, NotificationService notificationService, IVideoStorageService videos, IObjectStorageService storage)
 {
     private readonly ApplicationDbContext _context = context;
     private readonly NotificationService _notificationService = notificationService;
-
-    public async Task<PostDto> CreatePostAsync(string authorId, int threadId, int? parentPostId = null, string? content = "",string? imageUrl = "")
+    private readonly IVideoStorageService _videos = videos;
+    private readonly IObjectStorageService _storage = storage;
+    public async Task<PostDto> CreatePostAsync(string authorId, int threadId, int? parentPostId = null, string? content = "")
     {
         var thread = await _context.Threads
             .Include(t => t.Author)
@@ -27,7 +28,6 @@ public class PostService(ApplicationDbContext context, NotificationService notif
             ApplicationUserId = authorId,
             ThreadId = threadId,
             ParentPostId = parentPostId,
-            ImageUrl = imageUrl,
             CreatedAt = DateTime.UtcNow
         };
         _context.Posts.Add(post);
@@ -76,13 +76,46 @@ public class PostService(ApplicationDbContext context, NotificationService notif
             ProfileImageUrl = post.Author!.ProfileImageUrl ?? "https://www.redditstatic.com/avatars/avatar_default_02_FF4500.png",
             ThreadId = post.ThreadId,
             CreatedAt = post.CreatedAt,
-            ImageUrl = post.ImageUrl,
             ParentPostId = post.ParentPostId,
             LikeCount = 0,
             UserVote = vote?.Value ?? 0,
             Replies = []
         };
     }
+    public async Task<bool> AttachImage(int id, string Url, string Key, string ContentType, long SizeBytes, int? Width, int? Height)
+    {
+        var post = await _context.Posts.FindAsync(id);
+        if (post == null) return false;
+
+        if (!string.IsNullOrEmpty(post.ImageKey) && post.ImageKey != Key)
+            await _storage.DeleteAsync(post.ImageKey);
+        post.ImageKey = Key;
+        post.ImageUrl = Url;
+        post.ImageContentType = ContentType;
+        post.ImageSizeBytes = SizeBytes;
+        post.ImageWidth = Width;
+        post.ImageHeight = Height;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> AttachOrReplaceVideoPostAsync(int id, string Key, string Url, string ContentType, long SizeBytes, double? DurationSec)
+    {
+        var post = await _context.Posts.FindAsync(id);
+        if (post == null) return false;
+
+        if (!string.IsNullOrEmpty(post.VideoKey) && post.VideoKey != Key)
+            await _videos.DeleteAsync(post.VideoKey!);
+
+        post.VideoKey = Key;
+        post.VideoUrl = Url;
+        post.VideoContentType = ContentType;
+        post.VideoSizeBytes = SizeBytes;
+        post.VideoDurationSec = DurationSec;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
     private List<PostDto> BuildReplyTree(List<Post> allReplies, Dictionary<int, int> likeCounts, string userId, int? parentId)
     {
         return allReplies
@@ -101,13 +134,23 @@ public class PostService(ApplicationDbContext context, NotificationService notif
                 ThreadId = r.ThreadId,
                 ParentPostId = r.ParentPostId,
                 ImageUrl = r.ImageUrl,
+                ImageKey = r.ImageKey,
+                ImageContentType = r.ImageContentType,
+                ImageSizeBytes = r.ImageSizeBytes,
+                ImageWidth = r.ImageWidth,
+                ImageHeight = r.ImageHeight,
+                VideoKey = r.VideoKey,
+                VideoUrl = r.VideoUrl,
+                VideoContentType = r.VideoContentType,
+                VideoSizeBytes = r.VideoSizeBytes,
+                VideoDurationSec = r.VideoDurationSec,
                 CreatedAt = r.CreatedAt,
                 LikeCount = likeCounts.GetValueOrDefault(r.Id, 0),
                 UserVote = userVote,
                 Replies = BuildReplyTree(allReplies, likeCounts, userId, r.Id)
             };
         })
-    
+
         .ToList();
     }
 
@@ -144,6 +187,16 @@ public class PostService(ApplicationDbContext context, NotificationService notif
                 ParentPostId = post.ParentPostId,
                 ImageUrl = post.ImageUrl,
                 ThreadId = post.ThreadId,
+                ImageKey = post.ImageKey,
+                ImageContentType = post.ImageContentType,
+                ImageSizeBytes = post.ImageSizeBytes,
+                ImageWidth = post.ImageWidth,
+                ImageHeight = post.ImageHeight,
+                VideoKey = post.VideoKey,
+                VideoUrl = post.VideoUrl,
+                VideoContentType = post.VideoContentType,
+                VideoSizeBytes = post.VideoSizeBytes,
+                VideoDurationSec = post.VideoDurationSec,
                 CreatedAt = post.CreatedAt,
                 LikeCount = likeCounts.GetValueOrDefault(post.Id, 0),
                 UserVote = userVote,
@@ -180,6 +233,16 @@ public class PostService(ApplicationDbContext context, NotificationService notif
                 ParentPostId = post.ParentPostId,
                 ProfileImageUrl = post.Author?.ProfileImageUrl ?? "https://www.redditstatic.com/avatars/avatar_default_02_FF4500.png",
                 ImageUrl = post.ImageUrl,
+                ImageKey = post.ImageKey,
+                ImageContentType = post.ImageContentType,
+                ImageSizeBytes = post.ImageSizeBytes,
+                ImageWidth = post.ImageWidth,
+                ImageHeight = post.ImageHeight,
+                VideoKey = post.VideoKey,
+                VideoUrl = post.VideoUrl,
+                VideoContentType = post.VideoContentType,
+                VideoSizeBytes = post.VideoSizeBytes,
+                VideoDurationSec = post.VideoDurationSec,
                 CreatedAt = post.CreatedAt,
                 UserVote = userVote,
                 LikeCount = likeCounts.GetValueOrDefault(post.Id, 0),
@@ -200,6 +263,10 @@ public class PostService(ApplicationDbContext context, NotificationService notif
                 p.CreatedAt,
                 p.Author,
                 p.ImageUrl,
+                p.ImageKey,
+                p.VideoUrl,
+                p.VideoKey,
+                p.VideoContentType,
                 p.ParentPostId,
                 p.ThreadId
             })
@@ -219,6 +286,10 @@ public class PostService(ApplicationDbContext context, NotificationService notif
                     CreatedAt = p.CreatedAt,
                     AuthorUsername = p.Author.UserName,
                     ImageUrl = p.ImageUrl,
+                    VideoUrl = p.VideoUrl,
+                    ImageKey = p.ImageKey,
+                    VideoKey = p.VideoKey,
+                    VideoContentType = p.VideoContentType,
                     LikeCount = likeCounts.GetValueOrDefault(p.Id, 0),
                     ParentPostId = p.ParentPostId,
                     ThreadId = p.ThreadId
@@ -256,27 +327,60 @@ public class PostService(ApplicationDbContext context, NotificationService notif
             ThreadId = post.ThreadId,
             ParentPostId = post.ParentPostId,
             ImageUrl = post.ImageUrl,
+            ImageKey = post.ImageKey,
+            ImageSizeBytes = post.ImageSizeBytes,
+            ImageWidth = post.ImageWidth,
+            ImageHeight = post.ImageHeight,
+            VideoKey = post.VideoKey,
+            VideoUrl = post.VideoUrl,
+            VideoContentType = post.VideoContentType,
+            VideoSizeBytes = post.VideoSizeBytes,
+            VideoDurationSec = post.VideoDurationSec,
             CreatedAt = post.CreatedAt,
             LikeCount = likeCounts.GetValueOrDefault(post.Id, 0),
             UserVote = userVote,
             Replies = nestedReplies
         };
     }
-    public async Task<bool> UpdatePostAsync(int id, string? content = null, string? imageUrl = null)
+    public async Task<bool> UpdatePostAsync(int id, string? content = null)
     {
         var post = await _context.Posts.FindAsync(id);
         if (post == null) return false;
 
         post.Content = content;
-        post.ImageUrl = imageUrl;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> DeleteVideoAsync(int id)
+    {
+        var post = await _context.Posts.FindAsync(id);
+        if (post == null) return false;
+        if (!string.IsNullOrEmpty(post.VideoKey))
+            await _videos.DeleteAsync(post.VideoKey!);
+        post.VideoKey = post.VideoUrl = post.VideoContentType = null;
+        post.VideoSizeBytes = null; post.VideoDurationSec = null;
         await _context.SaveChangesAsync();
         return true;
     }
 
+    public async Task<bool> DeleteImageAsync(int id)
+    {
+        var post = await _context.Posts.FindAsync(id);
+        if (post == null) return false;
+        if (!string.IsNullOrEmpty(post.ImageKey))
+            await _storage.DeleteAsync(post.ImageKey);
+
+        post.ImageKey = post.ImageUrl = null;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
     public async Task<bool> DeletePostAsync(int id)
     {
         var post = await _context.Posts.FindAsync(id);
         if (post == null) return false;
+
+
         _context.Posts.Remove(post);
         await _context.SaveChangesAsync();
         return true;
@@ -320,7 +424,7 @@ public class PostService(ApplicationDbContext context, NotificationService notif
         }
         await _context.SaveChangesAsync();
     }
-    public async Task<PostDto> ReplyToPostAsync(int parentPostId, string content, string authorId, string? imageUrl)
+    public async Task<PostDto> ReplyToPostAsync(int parentPostId, string? content, string authorId)
     {
         var parentPost = await _context.Posts
             .Include(p => p.Thread)
@@ -332,7 +436,6 @@ public class PostService(ApplicationDbContext context, NotificationService notif
             ApplicationUserId = authorId,
             ThreadId = parentPost.ThreadId,
             ParentPostId = parentPostId,
-            ImageUrl = imageUrl,
             CreatedAt = DateTime.UtcNow
         };
         _context.Posts.Add(reply);
@@ -363,7 +466,6 @@ public class PostService(ApplicationDbContext context, NotificationService notif
             ThreadId = parentPost.ThreadId,
             ParentPostId = reply.ParentPostId,
             CreatedAt = reply.CreatedAt,
-            ImageUrl = imageUrl,
             LikeCount = 0,
             UserVote = userVote,
             Replies = [],

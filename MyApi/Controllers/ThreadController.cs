@@ -24,21 +24,8 @@ public class ThreadController(ThreadService threadService, UserManager<Applicati
     {
         var userId = _userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
-        string? imageUrl = null;
-        if (dto.Image != null && dto.Image.Length > 0)
-        {
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "threads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
-            var filePath = Path.Combine("wwwroot/images/threads", fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Image.CopyToAsync(stream);
-            }
-            imageUrl = "/images/threads/" + fileName;
-        }
-        var thread = await _threadService.CreateThreadAsync(dto.Title, dto.ForumId, userId,dto.Content, imageUrl);
+       
+        var thread = await _threadService.CreateThreadAsync(dto.Title, dto.ForumId, userId,dto.Content);
         return Ok(thread);
     }
     [HttpPut("{id}")]
@@ -55,38 +42,8 @@ public class ThreadController(ThreadService threadService, UserManager<Applicati
         if (thread.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user,"Admin"))
             return Forbid("You are not allowed to edit this thread.");
 
-        string? imageUrl = thread.ImageUrl;
-
-        if (dto.RemoveImage)
-        {
-            if (!string.IsNullOrEmpty(imageUrl))
-            {
-                var fullPath = Path.Combine("wwwroot", imageUrl.TrimStart('/'));
-                if (System.IO.File.Exists(fullPath))
-                    System.IO.File.Delete(fullPath);
-            }
-            imageUrl = null;
-        }
-        else if (dto.Image is { Length: > 0 })
-        {
-            var uploadsFolder = Path.Combine("wwwroot", "images", "threads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-            var ext = Path.GetExtension(dto.Image.FileName).ToLowerInvariant();
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
-            if (!allowedExtensions.Contains(ext))
-                return BadRequest("Invalid image file type.");
-            var fileName = Guid.NewGuid().ToString() + ext;
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Image.CopyToAsync(stream);
-            }
-            imageUrl = "/images/threads/" + fileName;
-        }
-        var success = await _threadService.UpdateThreadAsync(id, dto.Title, dto.Content, imageUrl);
+        
+        var success = await _threadService.UpdateThreadAsync(id, dto.Title, dto.Content);
         return success ? Ok(await _threadService.GetThreadByIdAsync(id, user.Id)) : NotFound("Thread not found");
     }
     [HttpGet("all")]
@@ -101,6 +58,66 @@ public class ThreadController(ThreadService threadService, UserManager<Applicati
     {
         var result = await _threadService.GetThreadsByForumAsync(id, viewerUserId);
         return Ok(result);
+    }
+    [HttpPost("{id}/video")]
+    public async Task<IActionResult> AttachOrReplaceVideo(int id, [FromBody] AttachVideoDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var thread = await _threadService.GetThreadByIdAsync(id, user.Id);
+        if (thread == null)
+            return NotFound("Thread not found");
+
+        if (thread.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this thread");
+
+        var success = await _threadService.AttachOrReplaceVideoThreadAsync(id, dto.Key, dto.Url, dto.ContentType, dto.SizeBytes, dto.DurationSec);
+        return success ? Ok(await _threadService.GetThreadByIdAsync(id, user.Id)) : NotFound("Thread not found");
+    }
+    [HttpDelete("{id}/video")]
+    public async Task<IActionResult> DeleteVideo(int id)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var thread = await _threadService.GetThreadByIdAsync(id, user.Id);
+        if (thread == null)
+            return NotFound("Thread not found");
+        if (thread.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this thread");
+        var success = await _threadService.DeleteVideoAsync(id);
+        return success ? Ok(await _threadService.GetThreadByIdAsync(id, user.Id)) : NotFound("Thread not found");
+    }
+    [HttpPost("{id}/image")]
+    public async Task<IActionResult> AttachOrReplaceImage(int id, [FromBody] AttachImageDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var thread = await _threadService.GetThreadByIdAsync(id, user.Id);
+        if (thread == null)
+            return NotFound("Thread not found");
+
+        if (thread.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this thread");
+
+        var success = await _threadService.AttachImage(id, dto.Url, dto.Key, dto.ContentType, dto.SizeBytes, dto.Width, dto.Height);
+        return success ? Ok(await _threadService.GetThreadByIdAsync(id, user.Id)) : NotFound("Thread not found");
+    }
+    [HttpDelete("{id}/image")]
+    public async Task<IActionResult> DeleteImage(int id)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+        var thread = await _threadService.GetThreadByIdAsync(id, user.Id);
+        if (thread == null)
+            return NotFound("Thread not found");
+        if (thread.AuthorUsername != user.UserName && !await _userManager.IsInRoleAsync(user, "Admin"))
+            return Forbid("You are not allowed to edit this thread");
+        var success = await _threadService.DeleteImageAsync(id);
+        return success ? Ok(await _threadService.GetThreadByIdAsync(id, user.Id)) : NotFound("Thread not found");
     }
     [HttpGet("{id:int}")]
     [AllowAnonymous]

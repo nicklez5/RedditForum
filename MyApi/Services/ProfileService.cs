@@ -7,10 +7,10 @@ using System.Net.Http.Headers;
 
 namespace MyApi.Services;
 
-public class ProfileService(ApplicationDbContext context)
+public class ProfileService(ApplicationDbContext context, IObjectStorageService storage)
 {
     private readonly ApplicationDbContext _context = context;
-
+    private readonly IObjectStorageService _storage = storage;
     public async Task<List<UserProfileDto>> GetAllUsersProfileAsync()
     {
         return await _context.Users
@@ -22,6 +22,7 @@ public class ProfileService(ApplicationDbContext context)
                 Username = u.UserName,
                 Bio = u.Bio,
                 ProfileImageUrl = u.ProfileImageUrl,
+                ProfileImageKey = u.ProfileImageKey,
                 DateJoined = u.DateJoined,
                 PostCount = u.PostCount,
                 Reputation = u.Reputation,
@@ -29,4 +30,5 @@ public class ProfileService(ApplicationDbContext context)
                 IsBanned = u.IsBanned
             }).ToListAsync();
     }
+    
 }

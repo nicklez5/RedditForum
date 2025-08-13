@@ -2,12 +2,17 @@ import {Action, Thunk, Computed, action, thunk} from "easy-peasy"
 import { Post } from "./PostModel"
 import { Forum } from "./ForumModel"
 import api from "../api/forums"
+import axios from "axios";
 export interface Thread{
     id: number;
     title: string;
     content: string;
     image? : File | null;
-    imageUrl : string;
+    imageUrl : string | null,
+    imageKey: string | null,
+    videoUrl: string | null,
+    videoKey: string | null,
+    videoContentType: string | null,
     forumId: number;
     forumTitle: string;
     forumIconUrl: string;
@@ -19,11 +24,29 @@ export interface Thread{
     posts: Post[];
     createdAt: Date;
 }
+type VideoMeta = {durationSec? : number; width? : number; height?: number};
+const readVideoMeta = (file: File): Promise<VideoMeta> => 
+    new Promise((res) => {
+        const v = document.createElement("video");
+        v.preload = "metadata";
+        v.onloadedmetadata = () => {
+            res({
+                durationSec: isFinite(v.duration) ? Math.round(v.duration) : undefined,
+                width: v.videoWidth || undefined,
+                height: v.videoHeight || undefined
+            });
+            URL.revokeObjectURL(v.src);
+        }
+        v.onerror = () => res({});
+        v.src = URL.createObjectURL(file);
+        v.load();
+    })
 export interface CreateThreadDto{
     title: string,
     content: string,
     forumId: number,
     image?: File | null
+    video? : File | null,
 }
 export interface EditThreadDto{
     id: number,
@@ -31,6 +54,8 @@ export interface EditThreadDto{
     content: string,
     image? :File | null,
     removeImage: boolean
+    video? : File | null,
+    removeVideo: boolean,
 }
 export interface ThreadModel{
     threads: Thread[],
@@ -96,12 +121,44 @@ export const threadModel: ThreadModel = {
             formData.append("title", CreateThreadDto.title);
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
-            if(CreateThreadDto.image){
-                formData.append("image",CreateThreadDto.image)
-            }
             const response = await api.post("/api/thread", formData
             );
-            actions.AddThread(response.data);
+            const thread = response.data;
+            const threadId = thread.id;
+            const getDims = async(file: File) => {
+                try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
+                catch { return undefined;}
+            }
+            if(CreateThreadDto.image){
+                const f = CreateThreadDto.image;
+                const {data: p} = await api.post("/api/images/presign", null, {
+                    params: {contentType: f.type, fileName: f.name, scope: "thread"}
+                })
+                await axios.put(p.url, f, {headers: {"Content-Type": f.type}})
+                const dims = await getDims(f);
+                await api.post(`/api/thread/${threadId}/image`, {
+                    key: p.key, url: p.publicUrl, contentType: f.type, sizeBytes: f.size, width: dims?.w, height: dims?.h
+                })
+                thread.imageUrl = p.publicUrl;
+                thread.imageKey = p.key;
+            }
+            if(CreateThreadDto.video){
+                const f = CreateThreadDto.video;
+                const {data: pre} = await api.post("/api/videos/presign", null, {
+                    params: {contentType: f.type, fileName: f.name}
+                })
+                await axios.put(pre.url, f, {headers: {"Content-Type": f.type}})
+                const meta = await readVideoMeta(f).catch(() => ({} as VideoMeta));
+                await api.post(`/api/thread/${threadId}/video`, {
+                    key: pre.key, url: pre.publicUrl, contentType: f.type, sizeBytes: f.size,
+                    durationSec: meta.durationSec, width: meta.width, height: meta.height
+                });
+                thread.videoUrl = pre.publicUrl;
+                thread.videoKey = pre.key;
+                thread.videoContentType = f.type;
+            }
+            
+            actions.AddThread(thread);
             actions.setError(null);
         }catch(error: any){
             console.error("Failed to create thread:", error);
@@ -112,28 +169,67 @@ export const threadModel: ThreadModel = {
     }),
     EditThread: thunk(async(actions,EditThreadDto, {getState}) => {
         actions.setLoading(true);
+        const getDims = async(file: File) => {
+            try { 
+                const bmp = await createImageBitmap(file); return { w: bmp.width, h: bmp.height}
+            }catch{
+                return undefined;
+            }
+        }
         try{
             const formData = new FormData();
             formData.append("content", EditThreadDto.content);
-            formData.append("removeImage", EditThreadDto.removeImage ? "true" : "false")
             formData.append("title", EditThreadDto.title);
-            if(EditThreadDto.image) formData.append("image",EditThreadDto.image);
             const response = await api.put(`/api/thread/${EditThreadDto.id}`, formData,{
                 headers: {"Content-Type": "multipart/form-data"},
             });
+            const existingThread = getState().threads.find(t => t.id === EditThreadDto.id);
             if(response.status === 200){
                 const updatedThread = response.data
-                const existingThread = getState().threads.find(t => t.id === EditThreadDto.id);
                 if(existingThread){
                     actions.UpdateThread({
                         ...existingThread, 
                         title: updatedThread.title,
                         content: updatedThread.content,
-                        image: updatedThread.imageUrl ?? null,
                     })
                 }
             }else{
                 console.error("Edit failed:", response.data);
+            }
+            if(EditThreadDto.image){
+                const f = EditThreadDto.image;
+                const {data: pi} = await api.post("/api/images/presign" , null , {
+                    params: {contentType: f.type, fileName: f.name, scope: "thread"}
+                })
+                await axios.put(pi.url, f, {headers: {'Content-Type': f.type}});
+                const dims = await getDims(f);
+                await api.post(`/api/thread/${EditThreadDto.id}/image` , {
+                    key: pi.key, url: pi.publicUrl, contentType: f.type, sizeBytes: f.size,
+                    width: dims?.w, height: dims?.h
+                })
+                actions.UpdateThread({...existingThread!, imageUrl: pi.publicUrl, imageKey: pi.key});
+            }else if(EditThreadDto.removeImage){
+                const response = await api.delete(`/api/thread/${EditThreadDto.id}/image`)
+                const updatedThread = response.data;
+                actions.UpdateThread({...existingThread!, imageUrl: updatedThread.imageUrl, imageKey: updatedThread.imageKey})
+            }
+            if(EditThreadDto.video){
+                const f = EditThreadDto.video;
+                const {data: pre} = await api.post("/api/videos/presign" , null , {
+                    params: {contentType: f.type, fileName: f.name}
+                });
+                await axios.put(pre.url, f, {headers: {'Content-Type': f.type}});
+                const meta = await readVideoMeta(f).catch(() => ({} as VideoMeta))
+                await api.post(`/api/thread/${EditThreadDto.id}/video` , {
+                    key: pre.key, url: pre.publicUrl, contentType: f.type, sizeBytes: f.size,
+                    durationSec: meta.durationSec, width: meta.width, height: meta.height
+                })
+                actions.UpdateThread({...existingThread!, videoUrl: pre.publicUrl, videoKey: pre.key, videoContentType: f.type})
+            }
+            else if(EditThreadDto.removeVideo){
+                const response = await api.delete(`/api/thread/${EditThreadDto.id}/video`)
+                const updatedThread = response.data;
+                actions.UpdateThread({...existingThread!, videoUrl: updatedThread.videoUrl, videoKey: updatedThread.videoKey})
             }
             actions.setError(null);
         }catch(error: any){

@@ -9,6 +9,7 @@ export interface Reply{
     threadId: number,
     likeCount: number
     replies: Reply[],
-    imageUrl: string,
+    imageUrl: string | null,
+    videoUrl: string | null,
     createdAt: Date
 }

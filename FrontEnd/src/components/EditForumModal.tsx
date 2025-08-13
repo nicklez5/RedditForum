@@ -49,9 +49,9 @@ const EditForumModal: React.FC<EditForumModalProps> = ({ forum, show, onClose}) 
             id: forum.id,
             title: title,
             description: description,
-            icon: icon,
+            iconFile: icon,
             removeIcon: removeIcon,
-            banner: banner,
+            bannerFile: banner,
             removeBanner: removeBanner
         }
         await editForum(dto);

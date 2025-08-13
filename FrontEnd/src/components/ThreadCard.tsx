@@ -53,6 +53,16 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         </div>
         <h5 className="mt-3 fw-bold">{thread.title}</h5>
         <div className="mb-2" style={{color:color}}>{thread.content}</div>
+        <div>
+            {thread.imageUrl && (
+                <img src={toAbs(thread.imageUrl!)} style={{width: "200px"}} />
+            )}
+        </div>
+        <div>
+            {thread.videoUrl && (
+                <video src={toAbs(thread.videoUrl)} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}} />
+            )}
+        </div>
         <div className="d-flex gap-3 text-muted small" onClick={(e) => e.stopPropagation()}>
                 <div className={`rounded-pill align-items-center gap-2 px-3 py-1 vote-box d-flex ${userVote === 1 ? "upvoted" : userVote === -1 ? "downvoted" : ""}`}>
                     <button className={`vote-btn ${userVote === 1 ? "upvoted" : ""}`} onClick={(e) => {
@@ -65,6 +75,7 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
                         handleVote(-1)
                         }}><FontAwesomeIcon icon={faArrowDown} style={{color: color}} /></button>
                 </div>
+                
                 <div className="align-items-center d-flex py-1 px-3 gap-2 comment-box rounded-pill ms-3">
                             
                 <button className="comment-btn rounded-pill align-items-center border-0"><span className="me-3">{thread.postCount}</span><FontAwesomeIcon icon={faComment} /></button>

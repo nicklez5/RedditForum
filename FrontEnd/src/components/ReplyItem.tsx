@@ -8,9 +8,9 @@ import { faArrowUp, faArrowDown, faComment, faEllipsis, faImage} from "@fortawes
 import { useTheme } from "./ThemeContext";
 interface Props{
     reply: Reply;
-    onReplySubmit: (parentPostId: number, content: string, image: File | null) => void;
+    onReplySubmit: (parentPostId: number, content: string, image: File | null, video: File| null) => void;
     onLikeReply: (replyId: number, voteValue: number) => void;
-    onEditReply: (replyId: number, newContent: string, editRemoveImage: boolean, editImage: File | null) => void;
+    onEditReply: (replyId: number, newContent: string, editRemoveImage: boolean, editImage: File | null, editRemoveVideo: boolean, editVideo: File | null) => void;
 }
 const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => {
     const {darkMode} = useTheme();
@@ -21,10 +21,14 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
     const deletePost = useStoreActions((a) => a.post.DeletePost);
     const [voteCount ,setVoteCount] = useState(reply!.likeCount);
     const [isEditing, setIsEditing] = useState(false);
-    const [editText, setEditText] = useState(reply.content);
+    const [editText, setEditText] = useState<string>(reply.content ?? "");
     const [editImage, setEditImage] = useState<File | null>(null);
     const [editRemoveImage, setEditRemoveImage] = useState(false);
     const [image, setImage] = useState<File | null>(null);
+    const [video,setVideo] = useState<File | null>(null);
+    const [editVideo, setEditVideo] = useState<File| null>(null);
+    const [editRemoveVideo, setEditRemoveVideo] = useState(false);
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [removeImage, setRemoveImage] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const handleSubmit = (e: React.FormEvent) => {
@@ -34,7 +38,7 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
 
         if (!hasText && !hasImage) return;
 
-        onReplySubmit(reply.id, replyText, image)
+        onReplySubmit(reply.id, replyText, image,video )
         setReplyText("");
         setImage(null);
         setImagePreview(null);
@@ -52,11 +56,46 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
             setVoteCount(voteCount + diff);
         }
     }
-    const handleEditSubmit = (e : React.FormEvent) => {
+    const handleEditSubmit = async (e : React.FormEvent) => {
         e.preventDefault();
-        if(editText.trim() !== ""){
-            onEditReply(reply.id, editText, editRemoveImage, editImage);
+        const newText = editText.trim();
+
+        const hadImage = !!reply.imageUrl;
+        const hadVideo = !!reply.videoUrl;
+
+        // What the reply will have after this edit
+        const willHaveImage = editImage
+            ? true                    // user picked a new image
+            : editRemoveImage
+            ? false                 // user removed existing image
+            : hadImage;             // keep existing as-is
+
+        const willHaveVideo = editVideo
+            ? true
+            : editRemoveVideo
+            ? false
+            : hadVideo;
+
+        const shouldDelete = newText.length === 0 && !willHaveImage && !willHaveVideo;
+
+        try {
+            if (shouldDelete) {
+            await deletePost(reply.id);
+            window.location.href = `/threads/${reply.threadId}`
+            } else {
+            onEditReply(
+                    reply.id,
+                    newText,
+                    editRemoveImage,
+                    editImage,
+                    editRemoveVideo,
+                    editVideo
+                );
+            }
             setIsEditing(false);
+        } catch (err) {
+            console.error("Edit/Remove failed", err);
+            // optionally show a toast/error state here
         }
     }
     const formatted = (date: Date) => formatDistanceToNow(new Date(date), {addSuffix: true})
@@ -83,16 +122,25 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                         <label htmlFor="post-upload" style={{cursor: "pointer"}}>
                             <FontAwesomeIcon icon={faImage} />
                         </label>
-                        <input id="post-upload" type="file" accept="image/*" className="d-none" onChange={(e) => {
+                        <input id="post-upload" type="file" accept="image/*,video/*" className="d-none" onChange={(e) => {
                             const file = e.target.files?.[0] ?? null;
-                            setEditImage(file);
-                            setEditRemoveImage(false);
-                            if(file){
+                            if(file?.type.startsWith("image/")){
+                                setEditImage(file);
+                                setEditRemoveImage(false);
                                 const previewURL = URL.createObjectURL(file);
                                 setImagePreview(previewURL)
+                                
+                            }else if(file?.type.startsWith("video/")){
+                                setEditVideo(file);
+                                setEditRemoveVideo(false);
+                                const previewURL = URL.createObjectURL(file);
+                                setVideoPreview(previewURL)
+                                
                             }else{
                                 setImagePreview(null);
+                                setVideoPreview(null);
                             }
+                            
                         }} />
                         <span className={`${darkMode ? 'text-white' : 'text-dark'}`}>Aa</span>
                         {imagePreview && (
@@ -112,9 +160,17 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                                     className="ms-2"
                                     >Remove Image</Button>
                             </div>
-                        )
-                        
-                        }
+                        )}
+                        {videoPreview && (
+                            <div>
+                                <video src={videoPreview} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}} />
+                                <Button size="sm" variant="outline-secondary" className="mb-3 ms-2" onClick={() => {
+                                setVideo(null);
+                                setEditRemoveVideo(true);
+                                setVideoPreview(null);
+                            }}>Remove Video</Button>
+                            </div>
+                        )}
                     </div>
                     {reply.imageUrl && (
                         <div className="position-relative" style={{maxWidth: "200px"}}>
@@ -131,6 +187,22 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                             </label>
                         </div>
                     )}
+                    {reply.videoUrl && (
+                        <div className="position-relative" style={{maxWidth: "200px"}}>
+                            <video src={toAbs(reply.videoUrl)} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}}/>
+                            <label>
+                                <input 
+                                type="checkbox"
+                                checked={editRemoveVideo}
+                                onChange={(e) => {
+                                setEditRemoveVideo(e.target.checked);
+                                if (e.target.checked) setEditVideo(null);
+                                }}
+                                />
+                                Remove Video
+                            </label>
+                        </div>
+                    )}
                     <div className="d-flex justify-content-end gap-2 mt-1">
                         <Button size="sm" type="submit" variant="outline-success">Save</Button>
                         <Button size="sm" variant="outline-secondary" onClick={() => setIsEditing(false)}>Cancel</Button>
@@ -140,7 +212,7 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
             ) : (
                 <div className="position-relative" >
                 {reply.imageUrl ? <img src={toAbs(reply.imageUrl)} alt="Current" width="500"/> : null}
-                
+                {reply.videoUrl ? <video src={toAbs(reply.videoUrl)} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}} /> : null}
                 <p className="mb-1">{reply.content}</p>
                 </div>
             )}
@@ -194,16 +266,23 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                                 <label htmlFor="post-upload" style={{cursor: "pointer"}}>
                                     <FontAwesomeIcon icon={faImage} />
                                 </label>
-                                <input id="post-upload" type="file" accept="image/*" className="d-none" onChange={(e) => {
+                                <input id="post-upload" type="file" accept="image/*,video/*" className="d-none" onChange={(e) => {
                                     const file = e.target.files?.[0] ?? null;
-                                    setImage(file);
-                                    setRemoveImage(false);
-                                    if(file){
+                                    if(file?.type.startsWith("image/")){{
+                                        setImage(file);
+                                        setRemoveImage(false);
                                         const previewURL = URL.createObjectURL(file);
-                                        setImagePreview(previewURL)
+                                        setImagePreview(previewURL);
+                                    }}else if(file?.type.startsWith("video/")){
+                                        setEditVideo(file);
+                                        setEditRemoveVideo(false);
+                                        const previewURL = URL.createObjectURL(file);
+                                        setVideoPreview(previewURL);
                                     }else{
                                         setImagePreview(null);
+                                        setVideoPreview(null);
                                     }
+
                                 }} />
                                 <span className={`${darkMode ? 'text-white' : 'text-dark'}`}>Aa</span>
                                 {imagePreview && (
@@ -224,6 +303,15 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                                     >Remove Image</Button>
                                     </div>
                                     
+                                )}
+                                {videoPreview && (
+                                    <div>
+                                        <video src={videoPreview} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}} />
+                                        <Button size="sm" variant="outline-secondary" className="mb-3 ms-2" onClick={() => {
+                                        setVideo(null);
+                                        setVideoPreview(null);
+                                    }}>Remove Video</Button>
+                                    </div>
                                 )}
                             </div>
                             

@@ -5,6 +5,7 @@ import { useStoreActions, useStoreState } from "../interface/hooks";
 import { Profile } from "../interface/ProfileModel";
 import { useParams } from "react-router-dom";
 import useVisitTracker from "../hooks/useVisitTracker";
+import axios from "axios";
 interface ProfileProps{
     EditMode: boolean
 }
@@ -35,7 +36,7 @@ const ProfilePage: React.FC<ProfileProps> = ({EditMode}) => {
             setFirstName(viewedProfile.firstName);
             setLastName(viewedProfile.lastName);
             setBio(viewedProfile.bio);
-            setProfileImageUrl(viewedProfile.profileImageUrl);
+            setProfileImageUrl(viewedProfile.profileImageUrl!);
         }
     },[viewedProfile])
     const getAchievements = (points: number) => {
@@ -68,21 +69,26 @@ const ProfilePage: React.FC<ProfileProps> = ({EditMode}) => {
             setPreview(URL.createObjectURL(selected));
         }
     }
+    const getDims = async(file: File) => {
+                try{ const bmp = await createImageBitmap(file); return { w: bmp.width, h: bmp.height}}
+                catch{ return undefined;}
+    }
     const handleUpload = async(): Promise<string | null> => {
         if(!file) return null;
 
         const formData = new FormData();
         formData.append('file', file);
-        try{
-            const res = await api.post('/api/profile/upload-profile-image', formData, {
-                headers: {'Content-Type' : 'multipart/form-data'},
-            });
-            const imageUrl = res.data.url;
-            return imageUrl;
-        }catch(err){
-            console.error(err);
-            return null;
-        }
+        const f = file;
+        const {data: pre} = await api.post("/api/profile/presign-avatar", null,{
+            params: {contentType: f.type, fileName: f.name}
+        });
+        await axios.put(pre.url, f,{headers: {"Content-Type": f.type}});
+        const dims = await getDims(f);
+        await api.post("/api/profile/avatar" ,{
+            key: pre.key, url: pre.publicUrl, contentType: f.type, sizeBytes: f.size, width: dims?.w, height: dims?.h
+        })
+        return pre.publicUrl as string;
+        
     }
     const handleSave = async() => {
         const uploadedUrl = await handleUpload()

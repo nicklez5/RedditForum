@@ -12,6 +12,8 @@ export interface Forum{
     iconUrl: string,
     icon: File | null,
     bannerUrl: string,
+    bannerKey: string,
+    iconKey: string,
     banner: File | null,
     createdAt : Date,
     author: string,
@@ -23,17 +25,17 @@ export interface Forum{
 export interface CreateForumDto{
     title: string,
     description: string | null,
-    icon?: File | null,
-    banner?: File | null,
+    iconFile?: File,
+    bannerFile?: File,
 }
 export interface EditForumDto{
     id: string,
     title: string,
     description: string | null,
-    icon?: File | null,
+    iconFile: File | null,
+    bannerFile: File | null,
     removeIcon: boolean,
-    banner? :File | null,
-    removeBanner: boolean
+    removeBanner: boolean,
 }
 export interface ForumSearchResult{
     threads: Thread[],
@@ -122,12 +124,42 @@ export const forumModel: ForumModel = {
             const formData = new FormData();
             formData.append("title", CreateForumDto.title)
             formData.append("description", CreateForumDto.description!)
-            if(CreateForumDto.icon) formData.append("icon", CreateForumDto.icon);
-            if(CreateForumDto.banner) formData.append("banner", CreateForumDto.banner);
             const response = await api.post("/api/forum", formData, {
                 headers: {"Content-Type": "multipart/form-data"},
             })
-            actions.AddForum(response.data)
+            const forum = response.data;
+            const forumId = forum.id;
+            const getDims = async (file: File) => {
+                try { const bmp = await createImageBitmap(file); return { w: bmp.width, h: bmp.height }; }
+                catch { return undefined; }
+            };
+            if(CreateForumDto.iconFile){
+                const f = CreateForumDto.iconFile;
+                const {data: p} = await api.post("/api/forum/presign/icon", null, {
+                    params: {contentType: f.type, fileName: f.name}
+                });
+                await axios.put(p.url, f, {headers: {"Content-Type": f.type}});
+                const dims = await getDims(f);
+                await api.post(`/api/forum/${forumId}/icon`, {
+                     key: p.key, url: p.publicUrl, contentType: f.type, sizeBytes: f.size,
+                     width: dims?.w, height: dims?.h
+                })
+                forum.iconUrl = p.publicUrl;
+            }
+            if(CreateForumDto.bannerFile){
+                const f = CreateForumDto.bannerFile;
+                const {data: p} = await api.post("/api/forum/presign/banner", null, {
+                    params: {contentType: f.type, fileName: f.name}
+                });
+                await axios.put(p.url, f, {headers: {"Content-Type": f.type}});
+                const dims = await getDims(f);
+                await api.post(`/api/forum/${forumId}/banner`, {
+                     key: p.key, url: p.publicUrl, contentType: f.type, sizeBytes: f.size,
+                     width: dims?.w, height: dims?.h
+                })
+                forum.bannerUrl = p.publicUrl;
+            }
+            actions.AddForum(forum);
             actions.setError(null)
         }catch(error : any){
             console.error("Error creating forum:",error.message);
@@ -139,33 +171,69 @@ export const forumModel: ForumModel = {
     EditForum: thunk(async(actions , EditForumDto, helpers) => {
         actions.setLoading(false);
         const {getState, getStoreActions} = helpers;
+        const getDims = async(file: File) => {
+            try { 
+                const bmp = await createImageBitmap(file); return { w: bmp.width, h: bmp.height}
+            }catch{
+                return undefined;
+            }
+        }
         try{
             const formData = new FormData();
             formData.append("title", EditForumDto.title)
             formData.append("description", EditForumDto.description!)
-            formData.append("removeIcon", EditForumDto.removeIcon ? "true": "false")
-            formData.append("removeBanner", EditForumDto.removeBanner ? "true" : "false")
-            if(EditForumDto.icon) formData.append("icon",EditForumDto.icon);
-            if(EditForumDto.banner) formData.append("banner", EditForumDto.banner);
             const response = await api.put(`/api/forum/${EditForumDto.id}`,formData,{
                 headers: {"Content-Type": "multipart/form-data"}
             })
+            const existingForum = getState().forums.find(f => f.id === parseInt(EditForumDto.id))
             if(response.status === 200){
                 const updatedForum = response.data
-                const existingForum = getState().forums.find(f => f.id === parseInt(EditForumDto.id))
                 if(existingForum){
                     actions.UpdateForum({...existingForum, 
                         title: updatedForum.title, 
                         description: updatedForum.description,
-                        iconUrl: updatedForum.iconUrl,
-                        bannerUrl: updatedForum.bannerUrl, 
-                        icon: updatedForum.icon ,
-                        banner: updatedForum.banner ,
                     })
                 }
             }else{
                 console.error("Edit forum failed:", response.data)
             }
+            if(EditForumDto.iconFile){
+                const f = EditForumDto.iconFile;
+                const {data: pi} = await api.post("/api/forum/presign/icon", null, {
+                    params: {contentType: f.type, fileName: f.name}
+                })
+                await axios.put(pi.url, f, {headers: {'Content-Type' : f.type}});
+                const dims = await getDims(f);
+                await api.post(`/api/forum/${EditForumDto.id}/icon`, {
+                    key: pi.key, url: pi.publicUrl, contentType: f.type, sizeBytes: f.size,
+                    width: dims?.w, height: dims?.h
+                })
+                actions.UpdateForum({...existingForum!, iconUrl: pi.publicUrl})
+            }
+            if (EditForumDto.bannerFile) {
+                const f = EditForumDto.bannerFile;
+                const { data: pb } = await api.post('/api/forum/presign/banner', null, {
+                    params: { contentType: f.type, fileName: f.name }
+                });
+                await axios.put(pb.url, f, { headers: { 'Content-Type': f.type } });
+                const dims = await getDims(f);
+                await api.post(`/api/forum/${EditForumDto.id}/banner`, {
+                    key: pb.key, url: pb.publicUrl, contentType: f.type, sizeBytes: f.size,
+                    width: dims?.w, height: dims?.h
+                });
+                actions.UpdateForum({ ...existingForum!, bannerUrl: pb.publicUrl });
+            }
+            if(EditForumDto.removeBanner){
+                const response = await api.delete(`/api/forum/${EditForumDto.id}/banner`);
+                const updatedForum = response.data;
+                actions.UpdateForum({...existingForum!, bannerUrl: updatedForum.bannerUrl, bannerKey: updatedForum.bannerKey})
+            }
+            if(EditForumDto.removeIcon){
+                const response = await api.delete(`/api/forum/${EditForumDto.id}/icon`);
+                const updatedForum = response.data;
+                actions.UpdateForum({...existingForum!, iconUrl: updatedForum.iconUrl, iconKey: updatedForum.iconKey})
+            }
+            actions.setError(null);
         }catch(error : any){
             const msg =
                 error?.response?.data ||
