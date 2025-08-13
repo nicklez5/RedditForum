@@ -40,35 +40,40 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
     const color = darkMode ? "white" : "black";
     const formatted = formatDistanceToNow(new Date(thread.createdAt), {addSuffix: true})
     const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+    const ASSET_BASE = (process.env.REACT_APP_ASSET_BASE_URL ?? API_BASE).replace(/\/$/, '');
     useEffect(() => {
     console.log('ThreadCard image debug', {
         id: thread.id,
         imageUrl: thread.imageUrl,
         imageKey: (thread as any).imageKey,
-        resolved: toAbs(thread.imageUrl ?? (thread as any).imageKey ?? ''),
+        resolved: resolveAsset(thread.imageUrl ?? (thread as any).imageKey ?? ''),
     });
     }, [thread.id, thread.imageUrl]);
-    const toAbs = (u: string) =>
-    /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
+    const resolveAsset = (u?: string | null): string | undefined => {
+        if (!u) return undefined;                          // don't return base by itself
+        if (/^https?:\/\//i.test(u)) return u;             // already absolute
+        return `${ASSET_BASE}/${u.replace(/^\/+/, '')}`    // join with asset base
+                .replace(/([^:]\/)\/+/g, '$1');
+        };
     return (
         <NavLink to={`/threads/${thread.id}`} style={{textDecoration: "none", color: 'inherit'}} className="card-link-wrapper">
         <Card className="shadow-sm border-5 post-card" style={cardStyle}>
         <div className="d-flex flex-row align-items-center mb-1 gap-1">
             {/* <div className="small" style={{color: color}}>r/{thread.forumTitle} ° {formatted}</div> */}
-            <img src={toAbs(thread.forumIconUrl)} className="avatar1" />
+            <img src={resolveAsset(thread.forumIconUrl)} className="avatar1" />
             <span className="small fw-semibold flex-col gap-1" style={{color: color}}>r/{thread.forumTitle} • {formatted}</span>  
         </div>
         <h5 className="mt-3 fw-bold">{thread.title}</h5>
         <div className="mb-2" style={{color:color}}>{thread.content}</div>
         <div>
             {thread.imageUrl && (
-                <img src={toAbs(thread.imageUrl)} style={{width: "200px"}} />
+                <img src={resolveAsset(thread.imageUrl)} style={{width: "200px"}} />
             )}
         </div>
         <div>
             {thread.videoUrl && (
                 <video width="400" controls>
-                    <source src={toAbs(thread.videoUrl)} type={thread.videoContentType ?? "video/mp4"} />
+                    <source src={resolveAsset(thread.videoUrl)} type={thread.videoContentType ?? "video/mp4"} />
                 </video>
             )}
         </div>
