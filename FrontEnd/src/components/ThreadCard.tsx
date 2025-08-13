@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart, faCommentAlt, faArrowUp, faArrowDown, faComment } from "@fortawesome/free-solid-svg-icons";
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStoreActions, useStoreState } from "../interface/hooks";
 interface Props{
     thread: Thread,
@@ -40,7 +40,14 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
     const color = darkMode ? "white" : "black";
     const formatted = formatDistanceToNow(new Date(thread.createdAt), {addSuffix: true})
     const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
-
+    useEffect(() => {
+    console.log('ThreadCard image debug', {
+        id: thread.id,
+        imageUrl: thread.imageUrl,
+        imageKey: (thread as any).imageKey,
+        resolved: toAbs(thread.imageUrl ?? (thread as any).imageKey ?? ''),
+    });
+    }, [thread.id, thread.imageUrl]);
     const toAbs = (u: string) =>
     /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
     return (
@@ -55,7 +62,7 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         <div className="mb-2" style={{color:color}}>{thread.content}</div>
         <div>
             {thread.imageUrl && (
-                <img src={toAbs(thread.imageUrl!)} style={{width: "200px"}} />
+                <img src={toAbs(thread.imageUrl)} style={{width: "200px"}} />
             )}
         </div>
         <div>
