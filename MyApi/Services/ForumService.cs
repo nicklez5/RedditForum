@@ -158,6 +158,10 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
                 CreatedAt = t.CreatedAt,
                 Content = t.Content,
                 ImageUrl = t.ImageUrl,
+                ImageKey = t.ImageKey,
+                VideoUrl = t.VideoUrl,
+                VideoKey = t.VideoKey,
+                VideoContentType = t.VideoContentType,
                 ForumId = t.ForumId,
                 ForumTitle = t.Forum.Title,
                 ForumIconUrl = t.Forum.IconUrl,
@@ -388,10 +392,11 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             return new SearchResult { Threads = [], Posts = [] };
 
         var threadz = await _context.Threads
-            .Where(t => t.Title.Contains(query) || t.Content.Contains(query))
+            .AsNoTracking()
+            .Where(t => (t.Title ?? "").Contains(query) || (t.Content ?? "").Contains(query))
             .Include(t => t.Forum)
-            .Include(t => t.Posts!)
-            .ThenInclude(p => p.Author)
+            .Include(t => t.Author) 
+            .Include(t => t.Posts)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
         
@@ -401,8 +406,8 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             Title = t.Title!,
             Content = t.Content,
             ForumId = t.ForumId,
-            ForumIconUrl = t.Forum.IconUrl,
-            ForumTitle = t.Forum!.Title!,
+            ForumIconUrl = t.Forum?.IconUrl,
+            ForumTitle = t.Forum?.Title,
             AuthorId = t.ApplicationUserId,
             VideoUrl = t.VideoUrl,
             VideoKey = t.VideoKey,
@@ -411,7 +416,7 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
             ImageKey = t.ImageKey,
             ImageHeight = t.ImageHeight,
             ImageWidth = t.ImageWidth,
-            AuthorUsername = t.Author!.UserName!,
+            AuthorUsername = t.Author?.UserName,
             PostCount = t.Posts!.Count,
             LikeCount = t.Votes?.Count ?? 0,
             CreatedAt = t.CreatedAt,
