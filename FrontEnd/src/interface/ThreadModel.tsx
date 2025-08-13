@@ -122,6 +122,12 @@ export const threadModel: ThreadModel = {
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
             const response = await api.post<Thread>("/api/thread", formData);
+            console.log("CREATE /api/thread ->", {
+                status: response.status,
+                contentType: response.headers["content-type"],
+                location: response.headers["location"],
+                data: response.data
+                });
             const created = response.data;
 
            let threadId: number | null =
@@ -136,7 +142,12 @@ export const threadModel: ThreadModel = {
             }
 
             if (threadId == null) {
-            console.error("CreateThread missing id", { created, headers: response.headers });
+                console.error("CreateThread missing id", {
+                status: response.status,
+                contentType: response.headers["content-type"],
+                headers: response.headers,
+                body: response.data
+            });
             throw new Error("No thread id from /api/thread");
             }
             const thread: Thread = { ...created };

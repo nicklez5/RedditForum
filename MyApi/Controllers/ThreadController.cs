@@ -20,13 +20,15 @@ public class ThreadController(ThreadService threadService, UserManager<Applicati
 
     [HttpPost]
     [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ThreadDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateThread([FromForm] CreateThreadDto dto)
     {
         var userId = _userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
-       
-        var thread = await _threadService.CreateThreadAsync(dto.Title, dto.ForumId, userId,dto.Content);
-        return Ok(thread);
+
+        var thread = await _threadService.CreateThreadAsync(dto.Title, dto.ForumId, userId, dto.Content);
+
+        return CreatedAtAction(nameof(GetThreadById), new { id = thread.Id }, thread);
     }
     [HttpPut("{id}")]
     public async Task<IActionResult> EditThread(int id, [FromForm] EditThreadDto dto)
