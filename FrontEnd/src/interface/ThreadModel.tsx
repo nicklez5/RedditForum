@@ -123,32 +123,17 @@ export const threadModel: ThreadModel = {
             formData.append("content",CreateThreadDto.content);
             const res = await api.post<Thread>("/api/thread", formData);
 
-            // 2) GET ID FROM BODY (camel or Pascal), OR LOCATION HEADER
-            let threadId: number | null =
-            (res.data as any)?.id ?? (res.data as any)?.Id ?? null;
-
-            if (threadId == null) {
-                const loc = (res.headers as any)?.location as string | undefined; // requires CORS expose
-                const last = loc?.split("/").pop();
-                const n = last ? Number(last) : NaN;
-            if (Number.isFinite(n)) threadId = n;
-                }
-
-            if (threadId == null) {
+            const created = res.data as any;
+            const threadId = Number(created?.id ?? created?.Id);
+            console.log('posting image to thread', threadId, created);
+            if (!Number.isFinite(threadId)) {
             console.error("CreateThread missing id", {
                 status: res.status,
-                ctype: res.headers["content-type"],
+                contentType: res.headers["content-type"],
                 headers: res.headers,
                 body: res.data
             });
-            console.log("Create /api/thread ->", {
-            status: res.status,
-            ctype: res.headers["content-type"],
-            location: (res.headers as any)?.location,
-            body: res.data
-            });
-            console.log("threadId =", threadId);
-            throw new Error("No thread id from /api/thread");
+            throw new Error("No thread id returned from /api/thread");
             }
 
             const thread: Thread = { ...res.data };
