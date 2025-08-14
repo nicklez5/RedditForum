@@ -377,7 +377,7 @@ const ThreadPage = () => {
           <Card.Text>{Thread.content}</Card.Text>
           <div>
           <div className="d-flex gap-2 mt-2">
-            <div className={`rounded-pill align-items-center gap-2 px-3 py-1 vote-box d-flex ${userVote === 1 ? "upvoted" : userVote === -1 ? "downvoted" : ""}`}>
+            <div className={`rounded-pill align-items-center gap-2 px-2 py-1 vote-box d-flex ${userVote === 1 ? "upvoted" : userVote === -1 ? "downvoted" : ""}`}>
             <button className={`vote-btn ${userVote === 1 ? "upvoted" : ""}`} onClick={() => handleVote(1)}><FontAwesomeIcon icon={faArrowUp} style={{color: color}} /></button>
             <span className="vote-count">{voteCount}</span>
             <button className={`vote-btn ${userVote === -1 ? "downvoted" : ""}`} onClick={() => handleVote(-1)}><FontAwesomeIcon icon={faArrowDown} style={{color: color}}/></button>
