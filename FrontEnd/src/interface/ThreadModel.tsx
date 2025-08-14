@@ -126,8 +126,27 @@ export const threadModel: ThreadModel = {
             formData.append("content",CreateThreadDto.content);
             const res = await api.post("/api/thread", formData);
 
-            const thread = res.data;
-            let threadId = thread?.id;
+            // Guard: ensure JSON, not HTML
+            const ct = res.headers?.["content-type"] ?? "";
+            if (!ct.includes("application/json") && typeof res.data === "string") {
+            throw new Error(`CreateThread returned ${ct}. Sample: ${res.data.slice(0, 120)}`);
+            }
+
+            // Get the id (handle casing/wrapping)
+            const d: any = res.data;
+            let threadId: number | undefined =
+            d?.id ?? d?.Id ?? d?.threadId ?? d?.ThreadId ?? d?.thread?.id ?? d?.thread?.Id;
+
+            // 201-with-Location fallback
+            if (!threadId && res.status === 201 && res.headers?.location) {
+            const last = res.headers.location.split("/").filter(Boolean).pop();
+            if (last && /^\d+$/.test(last)) threadId = Number(last);
+            }
+
+            if (!threadId) {
+            console.error("CreateThread response:", d);
+            throw new Error("CreateThread failed: missing thread id");
+            }
 
             
                         
@@ -145,8 +164,8 @@ export const threadModel: ThreadModel = {
                 await api.post(`/api/thread/${threadId}/image`, {
                     key: p.key, url: p.publicUrl, contentType: f.type, sizeBytes: f.size, width: dims?.w, height: dims?.h
                 })
-                thread.imageUrl = p.publicUrl;
-                thread.imageKey = p.key;
+                d.imageUrl = p.publicUrl;
+                d.imageKey = p.key;
             }
             if(CreateThreadDto.video){
                 const f = CreateThreadDto.video;
@@ -159,12 +178,12 @@ export const threadModel: ThreadModel = {
                     key: pre.key, url: pre.publicUrl, contentType: f.type, sizeBytes: f.size,
                     durationSec: meta.durationSec, width: meta.width, height: meta.height
                 });
-                thread.videoUrl = pre.publicUrl;
-                thread.videoKey = pre.key;
-                thread.videoContentType = f.type;
+                d.videoUrl = pre.publicUrl;
+                d.videoKey = pre.key;
+                d.videoContentType = f.type;
             }
             
-            actions.AddThread(res.data);
+            actions.AddThread(d);
             actions.setError(null);
             // return id;
         }catch(error: any){
