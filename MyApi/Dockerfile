@@ -1,35 +1,37 @@
 # MyApi/Dockerfile
+FROM node:20-alpine AS fe
+WORKDIR /fe
+# copy only manifests first for better caching
+COPY FrontEnd/package*.json ./
+RUN npm ci
+# now copy the rest and build
+COPY FrontEnd/ ./
+# If API+SPA share the same origin in prod, you can leave baseURL empty in code.
+# If you need a value at build time, uncomment ARG/ENV and set --build-arg on Render.
+# ARG REACT_APP_API_BASE_URL
+# ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+RUN npm run build
+
+# ---- 2) Build & publish backend ----
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-
-# Node for frontend build via MSBuild target (if used)
-RUN apt-get update && apt-get install -y curl gnupg \
-  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-  && apt-get install -y nodejs
-
-# Copy config + project file using repo-root paths
-COPY MyApi/NuGet.config ./
-COPY MyApi/MyApi.csproj MyApi/
-
-# First restore with no Windows fallbacks
-RUN dotnet restore MyApi/MyApi.csproj --configfile NuGet.config \
-    -p:RestoreAdditionalProjectFallbackFolders= -p:RestoreFallbackFolders=
-
-# Bring in the rest (API + FrontEnd)
+# copy csproj(s) & restore first
+COPY MyApi/*.csproj ./MyApi/
+RUN dotnet restore MyApi/MyApi.csproj
+# copy the rest and publish
 COPY . .
+# IMPORTANT: skip the MSBuild client target since we already built it in "fe"
+RUN dotnet publish MyApi/MyApi.csproj -c Release -o /app/out /p:SkipClientBuild=true
 
-# SAFETY: if Render ignored .dockerignore earlier, wipe any copied artifacts and restore again
-RUN rm -rf MyApi/bin MyApi/obj \
- && dotnet restore MyApi/MyApi.csproj --configfile NuGet.config \
-      -p:RestoreAdditionalProjectFallbackFolders= -p:RestoreFallbackFolders=
-
-# Build & publish
-RUN dotnet build MyApi/MyApi.csproj -c Release --no-restore
-RUN dotnet publish MyApi/MyApi.csproj -c Release -o /out --no-restore
-
+# ---- 3) Assemble runtime image ----
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=build /out .
+# copy published backend
+COPY --from=build /app/out ./
+# copy React build into wwwroot
+RUN mkdir -p /app/wwwroot
+COPY --from=fe /fe/build/ /app/wwwroot/
+# listen on 8080 (Render default for Docker Web Services)
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
 ENTRYPOINT ["dotnet","MyApi.dll"]

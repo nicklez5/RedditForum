@@ -147,7 +147,9 @@ export const threadModel: ThreadModel = {
             console.error("CreateThread response:", d);
             throw new Error("CreateThread failed: missing thread id");
             }
-
+            actions.AddThread(d);
+            actions.setError(null);
+            return threadId;
             
                         
             // const getDims = async(file: File) => {
@@ -183,9 +185,7 @@ export const threadModel: ThreadModel = {
             //     d.videoContentType = f.type;
             // }
             
-            actions.AddThread(d);
-            actions.setError(null);
-            return threadId;
+
         }catch(error: any){
             console.error("Failed to create thread:", error);
             actions.setError(error.message)
