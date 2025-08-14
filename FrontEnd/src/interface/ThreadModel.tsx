@@ -3,6 +3,7 @@ import { Post } from "./PostModel"
 import { Forum } from "./ForumModel"
 import api from "../api/forums"
 import axios from "axios";
+import { StoreModel } from "./StoreModel";
 export interface Thread{
     id: number;
     title: string;
@@ -71,7 +72,7 @@ export interface ThreadModel{
     UpdateThread: Action<ThreadModel, Thread>,
     SearchByFilterThread: Thunk<ThreadModel, string>,
     SearchByForumFilterThread: Thunk<ThreadModel,{sortBy: string,id: string}>,
-    CreateThread: Thunk<ThreadModel, CreateThreadDto>,
+    CreateThread: Thunk<ThreadModel, CreateThreadDto,void,StoreModel>,
     EditThread: Thunk<ThreadModel,EditThreadDto>,
     DeleteThread: Thunk<ThreadModel, number>,
     GetAllThreads: Thunk<ThreadModel>,
@@ -114,8 +115,9 @@ export const threadModel: ThreadModel = {
             state.selectedThread = updatedThread;
         }
     }),
-    
+
     CreateThread: thunk(async(actions,CreateThreadDto) => {
+        
         actions.setLoading(true);
         try{
             const formData = new FormData();
@@ -126,16 +128,8 @@ export const threadModel: ThreadModel = {
 
             const thread = res.data;
             let threadId = thread?.id;
-            if (!threadId && res.status === 201 && res.headers?.location) {
-            // Fallback if server returns 201 + Location only
-            const loc = new URL(res.headers.location, api.defaults.baseURL || window.location.origin);
-            const last = loc.pathname.split("/").filter(Boolean).pop();
-            if (last && /^\d+$/.test(last)) threadId = Number(last);
-            }
 
-            if (!threadId) {
-            throw new Error("Create thread failed: missing id (check baseURL/proxy/auth or 201-without-body server behavior).");
-            }
+            
                         
             const getDims = async(file: File) => {
                 try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
@@ -170,8 +164,9 @@ export const threadModel: ThreadModel = {
                 thread.videoContentType = f.type;
             }
             
-            actions.AddThread(thread);
+            actions.AddThread(res.data);
             actions.setError(null);
+            // return id;
         }catch(error: any){
             console.error("Failed to create thread:", error);
             actions.setError(error.message)

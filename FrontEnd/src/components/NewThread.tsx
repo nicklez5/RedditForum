@@ -24,7 +24,8 @@ const NewThread = () => {
     const [activeTab, setActiveTab] = useState('text');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-
+    const upload = useStoreActions((a) => a.upload.upload);
+    const {lastUrl, lastKey, lastContentType} = useStoreState((s) => s.upload);
     const forums = useStoreState((state) => state.forum.forums)
     const fetchForums = useStoreActions((a) => a.forum.GetAllForums);
     const createThread = useStoreActions((a) => a.thread.CreateThread)
@@ -72,6 +73,10 @@ const NewThread = () => {
             setError(null);
             setShowError(false);
             await createThread(dto);
+            // if(image){
+            //     await upload({file: image,presignPath: "/api/images/presign", commitPath: `/api/thread/${id}/image`, scope: "thread"});
+
+            // }
             console.log("Thread created successfully");
             navigate(`/home`)
         }catch(err: any){

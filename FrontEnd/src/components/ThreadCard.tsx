@@ -6,6 +6,7 @@ import { faHeart, faCommentAlt, faArrowUp, faArrowDown, faComment } from "@forta
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useStoreActions, useStoreState } from "../interface/hooks";
+import api from "../api/forums";
 interface Props{
     thread: Thread,
     darkMode: boolean
@@ -23,6 +24,16 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
     const likeThread = useStoreActions((a) => a.thread.voteThread);
     const [voteCount, setVoteCount] = useState(thread.likeCount)
     const [userVote, setUserVote] = useState(0);
+    const [img ,setImg] = useState<string | null>(null);
+    const [video,setVideo] = useState<string | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            const {data} = await api.get(`/api/thread/${thread.id}`);
+            setImg(data.imageUrl);
+            setVideo(data.videoUrl);
+        })();
+    },[thread.id])
     const handleVote = async(vote: number) => {
         if(!loggedIn || !thread.id ) return;
         await likeThread({threadId: thread.id, voteValue: vote});
@@ -68,14 +79,14 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         <h5 className="mt-3 fw-bold">{thread.title}</h5>
         <div className="mb-2" style={{color:color}}>{thread.content}</div>
         <div>
-            {imgSrc && (
-                <img src={imgSrc} style={{width: "200px"}} onError={() => console.error('CARD IMG ERROR', imgSrc)}/>
+            {img && (
+                <img src={resolveAsset(img)} style={{width: "200px"}} onError={() => console.error('CARD IMG ERROR', imgSrc)}/>
             )}
         </div>
         <div>
-            {videoSrc && (
+            {video && (
                 <video width="400" controls>
-                    <source src={videoSrc} type={thread.videoContentType ?? "video/mp4"} onError={() => console.error('CARD VIDEO ERROR', videoSrc)} />
+                    <source src={resolveAsset(video)} type={thread.videoContentType ?? "video/mp4"} onError={() => console.error('CARD VIDEO ERROR', videoSrc)} />
                 </video>
             )}
         </div>

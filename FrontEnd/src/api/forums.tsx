@@ -7,7 +7,8 @@ declare module "axios" {
     }
 }
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:5220"
+    baseURL: process.env.REACT_APP_API_BASE_URL ?? (window.location.hostname === 'localhost' ? 'http://localhost:5220' : 'https://redditforum.onrender.com')
+    
 })
 
 api.interceptors.request.use(

@@ -157,7 +157,6 @@ builder.Services.AddSingleton<IAmazonS3>(_ =>
 builder.Services.AddSingleton<IAssetUrlBuilder, AssetUrlBuilder>();
 builder.Services.AddSingleton<IVideoStorageService, S3VideoStorageService>();
 builder.Services.AddSingleton<IObjectStorageService, S3ObjectStorageService>();
-// Add services to the container.
 var app = builder.Build();
 
 app.UseForwardedHeaders();
@@ -166,19 +165,28 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     await RoleHelper.EnsureRolesCreated(roleManager);
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await SeedData.SeedAdminUser(userManager);
 }
-app.UseCors("AllowFrontend");
+
+// optional but recommended in prod
+app.UseHttpsRedirection();
+
 app.UseStaticFiles();
+
+app.UseRouting();                       // <-- add this
+
+app.UseCors("AllowFrontend");           // <-- after routing, before auth
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
-app.MapFallbackToFile("/index.html");
+
+app.MapControllers();                   // <-- API first
+app.MapFallbackToFile("/index.html");   // <-- SPA fallback last
 
 app.Run();
 
