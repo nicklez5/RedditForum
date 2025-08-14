@@ -121,32 +121,13 @@ export const threadModel: ThreadModel = {
             formData.append("title", CreateThreadDto.title);
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
-            const res = await api.post<Thread>("/api/thread", formData);
-                        
-            console.log("[CREATE RAW]", {
-            status: res.status,
-            ctype: res.headers["content-type"],
-            location: (res.headers as any)?.location,
-            body: res.data
+            const res = await api.post("/api/thread", formData, {
+                headers: {"Content-Type": "multipart/form-data"}
             });
 
-            const body: any = res.data;
-            let threadId: number | null =
-            typeof body?.id === "number" ? body.id :
-            typeof body?.Id === "number" ? body.Id :
-            null;
-
-            if (threadId == null) {
-            const loc = (res.headers as any)?.location as string | undefined;
-            const last = loc?.split("/").pop();
-            const n = last ? Number(last) : NaN;
-            if (Number.isFinite(n)) threadId = n;
-            }
-
-            console.log("[CREATE ID]", { threadId });
-            if (threadId == null) throw new Error("No thread id returned from /api/thread");
-
-            const thread: Thread = { ...res.data };
+            const thread = res.data;
+            const threadId = thread.id;
+                        
             const getDims = async(file: File) => {
                 try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
                 catch { return undefined;}
@@ -370,8 +351,8 @@ export const threadModel: ThreadModel = {
     SearchByForumFilterThread: thunk(async(actions,{sortBy, id}) => {
         actions.setLoading(true);
         try{
-            const {data} = await api.get<Thread[]>(`/api/thread/${id}/search?sortBy=${sortBy}`, {allowAnonymous: true , suppressRedirect: true})
-            actions.SetThreads(data);
+            const response = await api.get<Thread[]>(`/api/thread/${id}/search?sortBy=${sortBy}`, {allowAnonymous: true , suppressRedirect: true})
+            actions.SetThreads(response.data);
             actions.setError(null);
         }catch(error : any){
             console.error("Failed to sort threads", error)
