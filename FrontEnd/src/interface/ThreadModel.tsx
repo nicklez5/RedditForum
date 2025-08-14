@@ -121,12 +121,20 @@ export const threadModel: ThreadModel = {
             formData.append("title", CreateThreadDto.title);
             formData.append("forumId", String(CreateThreadDto.forumId));
             formData.append("content",CreateThreadDto.content);
-            const res = await api.post("/api/thread", formData, {
-                headers: {"Content-Type": "multipart/form-data"}
-            });
+            const res = await api.post("/api/thread", formData);
 
             const thread = res.data;
-            const threadId = thread.id;
+            let threadId = thread?.id;
+            if (!threadId && res.status === 201 && res.headers?.location) {
+            // Fallback if server returns 201 + Location only
+            const loc = new URL(res.headers.location, api.defaults.baseURL || window.location.origin);
+            const last = loc.pathname.split("/").filter(Boolean).pop();
+            if (last && /^\d+$/.test(last)) threadId = Number(last);
+            }
+
+            if (!threadId) {
+            throw new Error("Create thread failed: missing id (check baseURL/proxy/auth or 201-without-body server behavior).");
+            }
                         
             const getDims = async(file: File) => {
                 try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}

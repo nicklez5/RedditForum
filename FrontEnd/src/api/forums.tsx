@@ -24,7 +24,14 @@ api.interceptors.request.use(
     }
 );
 api.interceptors.response.use(
-    response => response,
+    (res)=> {
+        const ct = res.headers?.["content-type"] || "";
+        if (!ct.includes("application/json") && typeof res.data === "string") {
+        const sample = res.data.slice(0, 120);
+        return Promise.reject(new Error(`Expected JSON but got ${ct}. Sample: ${sample}`));
+        }
+        return res;
+    },
     (error) => {
         const allowAnonymous = error.config?.allowAnonymous;
 
