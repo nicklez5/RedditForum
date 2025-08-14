@@ -7,6 +7,7 @@ import { useTheme } from "./ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments, faPlus } from "@fortawesome/free-solid-svg-icons";
 import useVisitTracker from "../hooks/useVisitTracker";
+import api from "../api/forums";
 const ForumPage = () => {
     const navigate = useNavigate();
     const {darkMode} = useTheme();
@@ -59,7 +60,14 @@ const ForumPage = () => {
     if(loading) return <Spinner animation="border" />
     if(error) return <div className="text-danger">Error: {error}</div>
     const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
-
+    const fetchId = async(username: string) => {
+    try{
+      const { data} = await api.get(`/api/account/${username}`);
+      navigate(`/activity/${data.id}`)
+    }catch(err){
+      console.error("Failed to resolve user:", err);
+    }
+  }
     const toAbs = (u: string) =>
     /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
     return (
@@ -136,7 +144,8 @@ const ForumPage = () => {
                         <strong>Moderators</strong>
                         <br/>
                         <img src={selectedForum?.authorIcon} className="avatar" />
-                        {selectedForum?.author}
+                        <button>{selectedForum?.author}</button>
+                        
                         <br/>
                         <div className="d-inline-block "><Link to={`/postThread/${id}`}><Button variant="outline-primary" className="rounded-pill p-1 ms-5" style={{color: color, maxHeight: "60px"}}><div className="d-flex align-content-center mb-1 h-100 fs-6 mt-1 rounded-pill pe-2"><FontAwesomeIcon icon={faPlus} className="flex-row mx-2 mt-1 fs-5"/> Create post </div></Button></Link></div>
                     </div>
@@ -170,8 +179,13 @@ const ForumPage = () => {
                         <hr />
                         <strong>Moderators</strong>
                         <br/>
+                        <div className="d-flex align-items-start gap-1">
                         <img src={selectedForum?.authorIcon} className="avatar" />
-                        {selectedForum?.author}
+                        <div className="d-flex flex-column">
+                             <button className="border-1 rounded-pill btn-outline-primary fw-bold" style={{backgroundColor: bg, color: color}} onClick={() => fetchId(selectedForum?.author!)}>{selectedForum?.author}</button>
+                        </div>
+                       
+                        </div>
                         <br/>
                         <div className="d-inline-block "><Link to={`/postThread/${id}`}><Button variant="outline-primary" className="rounded-pill p-1 ms-1" style={{color: color, maxHeight: "60px"}}><div className="d-flex align-content-center mb-1 h-100 fs-6 mt-1 rounded-pill pe-2"><FontAwesomeIcon icon={faPlus} className="flex-row mx-2 mt-1 fs-5"/> Create post </div></Button></Link></div>
                     </div>
