@@ -29,6 +29,7 @@ const NewThread = () => {
     const forums = useStoreState((state) => state.forum.forums)
     const fetchForums = useStoreActions((a) => a.forum.GetAllForums);
     const createThread = useStoreActions((a) => a.thread.CreateThread)
+    const getThreadById = useStoreActions((a) => a.thread.GetThreadById);
     useEffect(() => {
         fetchForums()
     },[fetchForums])
@@ -72,11 +73,11 @@ const NewThread = () => {
             setLoading(true);
             setError(null);
             setShowError(false);
-            await createThread(dto);
-            // if(image){
-            //     await upload({file: image,presignPath: "/api/images/presign", commitPath: `/api/thread/${id}/image`, scope: "thread"});
-
-            // }
+            const id = await createThread(dto);
+            if(image){
+                await upload({file: image,presignPath: "/api/images/presign", commitPath: `/api/thread/${id}/image`, scope: "thread"});
+                
+            }
             console.log("Thread created successfully");
             navigate(`/home`)
         }catch(err: any){
