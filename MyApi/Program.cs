@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Microsoft.AspNetCore.WebUtilities; // QueryHelpers
+using Npgsql;
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 var allowedOrigins = builder.Configuration["Cors:Origins"]?
     .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -25,50 +28,64 @@ builder.Services.AddScoped<ThreadService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
-var dbUrl = builder.Configuration["DATABASE_URL"] 
+
+
+var dbUrl = builder.Configuration["DATABASE_URL"]
          ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
-    if (!string.IsNullOrWhiteSpace(dbUrl))
+if (!string.IsNullOrWhiteSpace(dbUrl))
+{
+    var uri = new Uri(dbUrl);
+
+    // user:pass
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+
+    var csb = new NpgsqlConnectionStringBuilder
     {
-        var uri = new Uri(dbUrl);
+        Host     = uri.Host,
+        Port     = uri.IsDefaultPort ? 5432 : uri.Port,
+        Username = username,
+        Password = password,
+        Database = uri.AbsolutePath.TrimStart('/'),
+    };
 
-        var userInfo = uri.UserInfo.Split(':', 2);
-        var username = Uri.UnescapeDataString(userInfo[0]);
-        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+    // Copy query params (sslmode, search_path, etc.)
+    var qp = QueryHelpers.ParseQuery(uri.Query); // returns Dictionary<string, StringValues>
+    foreach (var kv in qp)
+    {
+        // Npgsql keyword keys are case-insensitive
+        csb[kv.Key] = kv.Value.ToString();
+    }
 
-        var csb = new Npgsql.NpgsqlConnectionStringBuilder
-        {
-            Host = uri.Host,
-            Port = uri.IsDefaultPort ? 5432 : uri.Port,
-            Username = username,
-            Password = password,
-            Database = uri.AbsolutePath.TrimStart('/'),
-            // Respect existing query params (e.g., sslmode=require)
-        };
+    // Enforce TLS if caller didn’t specify sslmode
+    if (!csb.TryGetValue("Ssl Mode", out _))
+    {
+        csb.SslMode = SslMode.Require;
+        // Some hosts need this during TLS: 
+        csb.TrustServerCertificate = true;
+    }
 
-        // Copy any query params from the URL (sslmode, pooling, etc.)
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        foreach (string? key1 in query.AllKeys)
-        {
-            if (!string.IsNullOrEmpty(key1))
-                csb[key1] = query[key1]; // e.g. csb["Ssl Mode"] = "Require"
-        }
-
-        // If sslmode wasn't present, enforce it in prod
-        if (!csb.TryGetValue("Ssl Mode", out _))
-            csb.SslMode = Npgsql.SslMode.Require;
-
-        builder.Services.AddDbContext<ApplicationDbContext>(o =>
-            o.UseNpgsql(csb.ConnectionString));
+    builder.Services.AddDbContext<ApplicationDbContext>(opt =>
+        opt.UseNpgsql(csb.ConnectionString));
+}
+else
+{
+    // Strongly recommended: use Postgres locally too
+    var localPg = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrWhiteSpace(localPg))
+    {
+        builder.Services.AddDbContext<ApplicationDbContext>(opt =>
+            opt.UseNpgsql(localPg));
     }
     else
     {
-        // Local dev fallback
-        builder.Services.AddDbContext<ApplicationDbContext>(o =>
-            o.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+        // LAST RESORT for quick demos only — avoid for real dev to prevent provider drift
+        builder.Services.AddDbContext<ApplicationDbContext>(opt =>
+            opt.UseSqlite("Data Source=app.db"));
     }
-
-
+}
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
