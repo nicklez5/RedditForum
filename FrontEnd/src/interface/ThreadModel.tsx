@@ -114,6 +114,7 @@ export const threadModel: ThreadModel = {
             state.selectedThread = updatedThread;
         }
     }),
+    
     CreateThread: thunk(async(actions,CreateThreadDto) => {
         actions.setLoading(true);
         try{

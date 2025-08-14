@@ -28,7 +28,7 @@ public class ThreadController(ThreadService threadService, UserManager<Applicati
 
         var thread = await _threadService.CreateThreadAsync(dto.Title, dto.ForumId, userId, dto.Content);
 
-        return CreatedAtAction(nameof(GetThreadById), new { id = thread.Id }, thread);
+        return Ok(thread);
     }
     [HttpPut("{id}")]
     public async Task<IActionResult> EditThread(int id, [FromForm] EditThreadDto dto)
