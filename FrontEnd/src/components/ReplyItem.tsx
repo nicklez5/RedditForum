@@ -244,9 +244,15 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
                                   </button>
                                   <ul className="dropdown-menu">
                                     <li><button className="dropdown-item" onClick={() => setIsEditing(true)}>Edit</button></li>
-                                    <li><button className="dropdown-item" onClick={() => {
-                                        deletePost(reply.id)
-                                        window.location.href = `/threads/${reply.threadId}`
+                                    <li><button className="dropdown-item" onClick={async (e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        try{
+                                            await deletePost(reply.id)
+                                            window.location.href = `/threads/${reply.threadId}`
+                                        }catch(err){
+                                            console.error("Delete failed:",err)
+                                        }
                                         }}>Delete</button></li>
                                   </ul>
                                 </div>
