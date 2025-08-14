@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -16,19 +15,19 @@ namespace MyApi.Migrations
                 name: "PageVisits",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: true),
-                    ClientVisitKey = table.Column<string>(type: "text", nullable: false),
-                    SessionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    EntityType = table.Column<int>(type: "integer", nullable: false),
-                    Path = table.Column<string>(type: "text", nullable: false),
-                    EntityId = table.Column<string>(type: "text", nullable: true),
-                    EntityIntId = table.Column<int>(type: "integer", nullable: true),
-                    ReferrerPath = table.Column<string>(type: "text", nullable: true),
-                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DurationMs = table.Column<int>(type: "integer", nullable: true)
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientVisitKey = table.Column<string>(type: "TEXT", nullable: false),
+                    SessionId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    EntityType = table.Column<int>(type: "INTEGER", nullable: false),
+                    Path = table.Column<string>(type: "TEXT", nullable: false),
+                    EntityId = table.Column<string>(type: "TEXT", nullable: true),
+                    EntityIntId = table.Column<int>(type: "INTEGER", nullable: true),
+                    ReferrerPath = table.Column<string>(type: "TEXT", nullable: true),
+                    StartedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EndedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DurationMs = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -39,10 +38,10 @@ namespace MyApi.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -53,31 +52,32 @@ namespace MyApi.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Bio = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    ProfileImageUrl = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    DateJoined = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    PostCount = table.Column<int>(type: "integer", nullable: false),
-                    Reputation = table.Column<int>(type: "integer", nullable: false),
-                    IsModerator = table.Column<bool>(type: "boolean", nullable: false),
-                    IsBanned = table.Column<bool>(type: "boolean", nullable: false),
-                    BannedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    Bio = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    ProfileImageUrl = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    ProfileImageKey = table.Column<string>(type: "TEXT", nullable: true),
+                    DateJoined = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    PostCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    Reputation = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsModerator = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsBanned = table.Column<bool>(type: "INTEGER", nullable: false),
+                    BannedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,11 +88,11 @@ namespace MyApi.Migrations
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RoleId = table.Column<string>(type: "text", nullable: false),
-                    ClaimType = table.Column<string>(type: "text", nullable: true),
-                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    RoleId = table.Column<string>(type: "TEXT", nullable: false),
+                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
+                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -109,11 +109,11 @@ namespace MyApi.Migrations
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    ClaimType = table.Column<string>(type: "text", nullable: true),
-                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
+                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -130,10 +130,10 @@ namespace MyApi.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "text", nullable: false),
-                    ProviderKey = table.Column<string>(type: "text", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
+                    ProviderKey = table.Column<string>(type: "TEXT", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "TEXT", nullable: true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -150,8 +150,8 @@ namespace MyApi.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    RoleId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    RoleId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -174,10 +174,10 @@ namespace MyApi.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    LoginProvider = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true)
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Value = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -194,14 +194,24 @@ namespace MyApi.Migrations
                 name: "Forums",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    BannerUrl = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    IconUrl = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Title = table.Column<string>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    BannerUrl = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    IconUrl = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    IconKey = table.Column<string>(type: "TEXT", nullable: true),
+                    IconContentType = table.Column<string>(type: "TEXT", nullable: true),
+                    IconSizeBytes = table.Column<long>(type: "INTEGER", nullable: true),
+                    IconWidth = table.Column<int>(type: "INTEGER", nullable: true),
+                    IconHeight = table.Column<int>(type: "INTEGER", nullable: true),
+                    BannerKey = table.Column<string>(type: "TEXT", nullable: true),
+                    BannerContentType = table.Column<string>(type: "TEXT", nullable: true),
+                    BannerSizeBytes = table.Column<long>(type: "INTEGER", nullable: true),
+                    BannerWidth = table.Column<int>(type: "INTEGER", nullable: true),
+                    BannerHeight = table.Column<int>(type: "INTEGER", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -218,13 +228,13 @@ namespace MyApi.Migrations
                 name: "Messages",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    SenderId = table.Column<string>(type: "text", nullable: true),
-                    RecipientId = table.Column<string>(type: "text", nullable: true),
-                    Content = table.Column<string>(type: "text", nullable: true),
-                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsRead = table.Column<bool>(type: "boolean", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    SenderId = table.Column<string>(type: "TEXT", nullable: true),
+                    RecipientId = table.Column<string>(type: "TEXT", nullable: true),
+                    Content = table.Column<string>(type: "TEXT", nullable: true),
+                    SentAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    IsRead = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -247,15 +257,15 @@ namespace MyApi.Migrations
                 name: "Notifications",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RecipientId = table.Column<string>(type: "text", nullable: true),
-                    SenderId = table.Column<string>(type: "text", nullable: true),
-                    Url = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    Message = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
-                    Type = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    RecipientId = table.Column<string>(type: "TEXT", nullable: true),
+                    SenderId = table.Column<string>(type: "TEXT", nullable: true),
+                    Url = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    Message = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    IsRead = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Type = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -278,11 +288,11 @@ namespace MyApi.Migrations
                 name: "RefreshTokens",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Token = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    ExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Token = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    ExpiryDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -299,8 +309,8 @@ namespace MyApi.Migrations
                 name: "ApplicationUserForum",
                 columns: table => new
                 {
-                    ForumsId = table.Column<int>(type: "integer", nullable: false),
-                    UsersId = table.Column<string>(type: "text", nullable: false)
+                    ForumsId = table.Column<int>(type: "INTEGER", nullable: false),
+                    UsersId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -323,15 +333,25 @@ namespace MyApi.Migrations
                 name: "Threads",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
-                    Content = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ForumId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: true),
-                    LikeCount = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Title = table.Column<string>(type: "TEXT", nullable: false),
+                    ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    ImageKey = table.Column<string>(type: "TEXT", nullable: true),
+                    ImageContentType = table.Column<string>(type: "TEXT", nullable: true),
+                    ImageSizeBytes = table.Column<long>(type: "INTEGER", nullable: true),
+                    ImageWidth = table.Column<int>(type: "INTEGER", nullable: true),
+                    ImageHeight = table.Column<int>(type: "INTEGER", nullable: true),
+                    Content = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ForumId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "TEXT", nullable: true),
+                    VideoKey = table.Column<string>(type: "TEXT", nullable: true),
+                    VideoUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    VideoContentType = table.Column<string>(type: "TEXT", nullable: true),
+                    VideoSizeBytes = table.Column<long>(type: "INTEGER", nullable: true),
+                    VideoDurationSec = table.Column<double>(type: "REAL", nullable: true),
+                    LikeCount = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -354,15 +374,25 @@ namespace MyApi.Migrations
                 name: "Posts",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Content = table.Column<string>(type: "text", nullable: true),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: true),
-                    ThreadId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ParentPostId = table.Column<int>(type: "integer", nullable: true),
-                    LikeCount = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Content = table.Column<string>(type: "TEXT", nullable: true),
+                    ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    ImageKey = table.Column<string>(type: "TEXT", nullable: true),
+                    ImageContentType = table.Column<string>(type: "TEXT", nullable: true),
+                    ImageSizeBytes = table.Column<long>(type: "INTEGER", nullable: true),
+                    ImageWidth = table.Column<int>(type: "INTEGER", nullable: true),
+                    ImageHeight = table.Column<int>(type: "INTEGER", nullable: true),
+                    ApplicationUserId = table.Column<string>(type: "TEXT", nullable: true),
+                    ThreadId = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ParentPostId = table.Column<int>(type: "INTEGER", nullable: true),
+                    LikeCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    VideoKey = table.Column<string>(type: "TEXT", nullable: true),
+                    VideoUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    VideoContentType = table.Column<string>(type: "TEXT", nullable: true),
+                    VideoSizeBytes = table.Column<long>(type: "INTEGER", nullable: true),
+                    VideoDurationSec = table.Column<double>(type: "REAL", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -391,10 +421,10 @@ namespace MyApi.Migrations
                 name: "ThreadVotes",
                 columns: table => new
                 {
-                    ThreadId = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    Value = table.Column<int>(type: "integer", nullable: false)
+                    ThreadId = table.Column<int>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Value = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -417,10 +447,10 @@ namespace MyApi.Migrations
                 name: "PostVotes",
                 columns: table => new
                 {
-                    PostId = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    Value = table.Column<int>(type: "integer", nullable: false)
+                    PostId = table.Column<int>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Value = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

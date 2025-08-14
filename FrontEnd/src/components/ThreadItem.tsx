@@ -10,6 +10,15 @@ const ThreadItem = ({thread} : {thread: Thread}) => {
     const {DeleteThread} = useStoreActions((a) => a.thread);
     const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const API_BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+    const ASSET_BASE = (process.env.REACT_APP_ASSET_BASE_URL ?? API_BASE).replace(/\/$/, '');
+    const resolveAsset = (u?: string | null): string | undefined => {
+        if (!u) return undefined;                          // don't return base by itself
+        if (/^https?:\/\//i.test(u)) return u;             // already absolute
+        return `${ASSET_BASE}/${u.replace(/^\/+/, '')}`    // join with asset base
+                .replace(/([^:]\/)\/+/g, '$1');
+        };
+    const imgSrc   = resolveAsset(thread.imageUrl ?? (thread as any).imageKey);
     return(
         <div>
             <Link to={`/threads/${thread.id}`} style={{textDecoration: "none"}}>
@@ -20,6 +29,16 @@ const ThreadItem = ({thread} : {thread: Thread}) => {
                     <span className="small">Thread Content</span>
                     <p>{thread.content}</p>
                     <hr/>
+                    {thread.imageKey && (
+                        <>
+                    <span className="small">Thread Image</span>
+                    <div>
+                        <img src={imgSrc} style={{width: "200px"}}/>
+                    </div>
+                    <hr/>
+                    </>
+                    )}
+
                     <span className="small">Post Count</span>
                     <p>{thread.postCount}</p>
                     <hr/>

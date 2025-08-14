@@ -70,7 +70,7 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
     const videoSrc = resolveAsset(thread.videoUrl ?? (thread as any).videoKey);
     return (
         <NavLink to={`/threads/${thread.id}`} style={{textDecoration: "none", color: 'inherit'}} className="card-link-wrapper">
-        <Card className="shadow-sm border-5 post-card" style={cardStyle}>
+        <Card className="shadow-sm border-1 post-card" style={cardStyle}>
         <div className="d-flex flex-row align-items-center mb-1 gap-1">
             {/* <div className="small" style={{color: color}}>r/{thread.forumTitle} ° {formatted}</div> */}
             <img src={resolveAsset(thread.forumIconUrl)} className="avatar1" />

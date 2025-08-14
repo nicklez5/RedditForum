@@ -393,7 +393,7 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
 
         var threadz = await _context.Threads
             .AsNoTracking()
-            .Where(t => (t.Title ?? "").Contains(query) || (t.Content ?? "").Contains(query))
+            .Where(t => ((t.Title ?? "").ToLower()).Contains(query) || ((t.Content ?? "").ToLower()).Contains(query))
             .Include(t => t.Forum)
             .Include(t => t.Author) 
             .Include(t => t.Posts)
@@ -424,7 +424,7 @@ public class ForumService(ApplicationDbContext context, UserManager<ApplicationU
         }).ToList();
 
         var posts = await _context.Posts
-            .Where(p => p.Content.Contains(query))
+            .Where(p => p.Content.ToLower().Contains(query))
             .Include(p => p.Author)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();

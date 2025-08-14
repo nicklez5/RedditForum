@@ -107,16 +107,18 @@ const Home: React.FC<HomeProps>= ({SortBy}) => {
                 ))}
                 </div>
             )}
-        <div className="col-lg-3 ">
-            <div className="position-sticky" style={{top:"80px"}}>
-                <div className="card shadow-sm">
-                    <div className="card-body recent-activity">
-                        <button onClick={handleDelete} className="align-items-end justify-content-center d-flex ms-5">Clear History</button>
-                        <h5 className="card-title mb-3 text-black">Recent Activity</h5>
+        <div className="col-lg-3 " >
+            <div className="position-sticky" style={{top:"80px"}} >
+                <div className="card shadow-sm" >
+                    <div>
+                    <div className="card-body recent-activity position-relative" style={{backgroundColor: bg, color: color}} >
+                        <button onClick={handleDelete} className="align-items-end justify-content-center d-flex ms-5 position-absolute top-0 end-0 mt-1  border-0 bg-transparent text-primary shadow-sm">Clear History</button>
+                        <h5 className="card-title mb-3 ">Recent Activity</h5>
+                    </div>
                         {loading2 && <p>Loading...</p>}
-                        <ul className="list-group">
+                        <ul className="list-group" >
                             {items123.map(v => (
-                                <li key={v.id} className="list-group-item d-flex justify-content-between">
+                                <li key={v.id} className=" d-flex justify-content-between">
                                     <div>
                                         <a href={v.url} className="activity-item text-decoration-none">
                                             <div className="kind fw-semibold">{v.kind}</div>

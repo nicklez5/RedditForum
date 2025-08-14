@@ -48,11 +48,11 @@ const SearchPage = () => {
                 {results.posts.length > 0 && (
                     <div>
                     <h5>Posts:</h5>
-                    <ul className="list-group">
+                    <ul className="list-group" >
                         {results.posts.map((post) => (
                             <Link to={`/threads/${post.threadId}`} key={post.threadId} className="list-group-item list-group-item-action thread-link" style={{ textDecoration: "none", color: color, backgroundColor: bg}}>
                                 
-                            <li key={post.id} className="list-group-item">
+                            <li key={post.id} className="list-unstyled">
                                 <p><strong>Author: </strong> {post.authorUsername ?? "Unknown"}</p>
                                 <p>{post.content}</p>
                                 <small className="text-muted">{new Date(post.createdAt).toLocaleString()}</small>

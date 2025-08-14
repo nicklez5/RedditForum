@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage , faFileImage, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -9,8 +9,11 @@ const CommentForm = ({threadId, parentPostId} : {threadId: number, parentPostId:
     const [content, setContent] = useState('');
     const [image, setImage] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+    const [video, setVideo] = useState<File | null>(null);
     const [showForm, setShowForm] = useState(true);
-
+    const revokeImgRef = useRef<string | null>(null);
+    const revokeVidRef = useRef<string | null>(null);
     const handleCancel = () => {
         setContent('');
         setPreviewUrl(null);
@@ -19,7 +22,31 @@ const CommentForm = ({threadId, parentPostId} : {threadId: number, parentPostId:
     const createPost = useStoreActions((actions) => actions.post.CreatePost)
     const fetchThread = useStoreActions((actions) => actions.thread.GetThreadById)
     const {darkMode} = useTheme();
-
+    const clearPreviews = () => {
+        if(revokeImgRef.current) {URL.revokeObjectURL(revokeImgRef.current); revokeImgRef.current = null;}
+        if(revokeVidRef.current){ URL.revokeObjectURL(revokeVidRef.current); revokeVidRef.current = null;}
+        setImage(null); setPreviewUrl(null);
+        setVideo(null); setVideoPreviewUrl(null);
+    }
+    useEffect(() => () => {
+        clearPreviews();
+    },[])
+    const handleFileChange = (file: File | null) => {
+        clearPreviews();
+        if(!file) return;
+        const url = URL.createObjectURL(file);
+        if(file.type.startsWith("image/")){
+            setImage(file);
+            setPreviewUrl(url);
+            revokeImgRef.current = url;
+        }else if(file.type.startsWith("video/")){
+            setVideo(file);
+            setVideoPreviewUrl(url);
+            revokeVidRef.current = url;
+        }else{
+            URL.revokeObjectURL(url);
+        }
+    }
     const handleImageChange = (e : React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if(file){
@@ -35,7 +62,8 @@ const CommentForm = ({threadId, parentPostId} : {threadId: number, parentPostId:
         e.preventDefault();
         const hasText = content.trim().length > 0;
         const hasImage = !!image;
-        if(!hasText && !hasImage) return;
+        const hasVideo = !!video;
+        if(!hasText && !hasImage && !hasVideo ) return;
 
 
         const dto = {
@@ -43,6 +71,7 @@ const CommentForm = ({threadId, parentPostId} : {threadId: number, parentPostId:
             threadId,
             parentPostId,
             image: image || undefined,
+            video: video
         };
 
         await createPost(dto)
@@ -64,12 +93,16 @@ const CommentForm = ({threadId, parentPostId} : {threadId: number, parentPostId:
                     <input
                         id="upload"
                         type="file"
-                        accept="image/*"
+                        accept="image/,video/**"
                         style={{ display: 'none' }}
-                        onChange={handleImageChange}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const file = e.target.files?.[0] ?? null;
+                            handleFileChange(file);
+                        }}
                     />
                     <span className={`${darkMode} ? 'text-white' : 'text-dark'`}>Aa</span>
                 </div>
+                <br/>
                 <textarea
                     className={`form-control ${darkMode ? 'bg-dark text-white' : 'bg-light text-dark'}`}
                     placeholder="Add a comment..."
@@ -77,17 +110,27 @@ const CommentForm = ({threadId, parentPostId} : {threadId: number, parentPostId:
                     onChange={(e)=> setContent(e.target.value)}
                     rows={3}
                 />
+
                 {previewUrl && (
                     <div className="position-relative" style={{maxWidth:"200px"}}>
                         <img src={previewUrl} alt="preview" className="img-fluid rounded" />
                         <button
                             type="button"
                             className="btn btn-sm btn-danger position-absolute top-0 end-0"
-                            onClick={handleRemoveImage}
+                            onClick={clearPreviews}
                             style={{ transform: 'translate(50%, -50%)', borderRadius: '50%'}}
                         >
                             <FontAwesomeIcon icon={faXmark}/>
                         </button>
+                    </div>
+                )}
+                {videoPreviewUrl && (
+                    <div className="position-relative" style={{maxWidth: "200px"}}>
+                        <video src={videoPreviewUrl} controls preload="metadata" style={{maxWidth: "400px", maxHeight: 320}}/>
+                        <Button size="sm" variant="outline-secondary" className="btn btn-sm btn-danger position-absolute top-0 end-"
+                            onClick={clearPreviews}
+                            style={{transform: "translate(0%, -50%)", borderRadius: "50%"}}
+                        ><FontAwesomeIcon icon={faXmark}/></Button>
                     </div>
                 )}
                 <div className="d-flex justify-content-end gap-2">

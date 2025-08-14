@@ -147,45 +147,44 @@ export const threadModel: ThreadModel = {
             console.error("CreateThread response:", d);
             throw new Error("CreateThread failed: missing thread id");
             }
-            actions.AddThread(d);
-            actions.setError(null);
-            return threadId;
+
             
                         
-            // const getDims = async(file: File) => {
-            //     try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
-            //     catch { return undefined;}
-            // }
-            // if(CreateThreadDto.image){
-            //     const f = CreateThreadDto.image;
-            //     const {data: p} = await api.post("/api/images/presign", null, {
-            //         params: {contentType: f.type, fileName: f.name, scope: "thread"}
-            //     })
-            //     await axios.put(p.url, f, {headers: {"Content-Type": f.type}})
-            //     const dims = await getDims(f);
-            //     await api.post(`/api/thread/${threadId}/image`, {
-            //         key: p.key, url: p.publicUrl, contentType: f.type, sizeBytes: f.size, width: dims?.w, height: dims?.h
-            //     })
-            //     d.imageUrl = p.publicUrl;
-            //     d.imageKey = p.key;
-            // }
-            // if(CreateThreadDto.video){
-            //     const f = CreateThreadDto.video;
-            //     const {data: pre} = await api.post("/api/videos/presign", null, {
-            //         params: {contentType: f.type, fileName: f.name}
-            //     })
-            //     await axios.put(pre.url, f, {headers: {"Content-Type": f.type}})
-            //     const meta = await readVideoMeta(f).catch(() => ({} as VideoMeta));
-            //     await api.post(`/api/thread/${threadId}/video`, {
-            //         key: pre.key, url: pre.publicUrl, contentType: f.type, sizeBytes: f.size,
-            //         durationSec: meta.durationSec, width: meta.width, height: meta.height
-            //     });
-            //     d.videoUrl = pre.publicUrl;
-            //     d.videoKey = pre.key;
-            //     d.videoContentType = f.type;
-            // }
+            const getDims = async(file: File) => {
+                try{ const bmp = await createImageBitmap(file); return {w:bmp.width, h:bmp.height}}
+                catch { return undefined;}
+            }
+            if(CreateThreadDto.image){
+                const f = CreateThreadDto.image;
+                const {data: p} = await api.post("/api/images/presign", null, {
+                    params: {contentType: f.type, fileName: f.name, scope: "thread"}
+                })
+                await axios.put(p.url, f, {headers: {"Content-Type": f.type}})
+                const dims = await getDims(f);
+                await api.post(`/api/thread/${threadId}/image`, {
+                    key: p.key, url: p.publicUrl, contentType: f.type, sizeBytes: f.size, width: dims?.w, height: dims?.h
+                })
+                d.imageUrl = p.publicUrl;
+                d.imageKey = p.key;
+            }
+            if(CreateThreadDto.video){
+                const f = CreateThreadDto.video;
+                const {data: pre} = await api.post("/api/videos/presign", null, {
+                    params: {contentType: f.type, fileName: f.name}
+                })
+                await axios.put(pre.url, f, {headers: {"Content-Type": f.type}})
+                const meta = await readVideoMeta(f).catch(() => ({} as VideoMeta));
+                await api.post(`/api/thread/${threadId}/video`, {
+                    key: pre.key, url: pre.publicUrl, contentType: f.type, sizeBytes: f.size,
+                    durationSec: meta.durationSec, width: meta.width, height: meta.height
+                });
+                d.videoUrl = pre.publicUrl;
+                d.videoKey = pre.key;
+                d.videoContentType = f.type;
+            }
             
-
+            actions.AddThread(d);
+            actions.setError(null);
         }catch(error: any){
             console.error("Failed to create thread:", error);
             actions.setError(error.message)

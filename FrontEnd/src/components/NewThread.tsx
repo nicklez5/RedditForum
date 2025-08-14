@@ -73,11 +73,8 @@ const NewThread = () => {
             setLoading(true);
             setError(null);
             setShowError(false);
-            const id = await createThread(dto);
-            if(image){
-                await upload({file: image,presignPath: "/api/images/presign", commitPath: `/api/thread/${id}/image`, scope: "thread"});
-                
-            }
+            await createThread(dto);
+            
             console.log("Thread created successfully");
             navigate(`/home`)
         }catch(err: any){
