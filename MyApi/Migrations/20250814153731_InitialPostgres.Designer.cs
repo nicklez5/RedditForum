@@ -11,7 +11,7 @@ using MyApi.Data;
 namespace MyApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250814151004_InitialPostgres")]
+    [Migration("20250814153731_InitialPostgres")]
     partial class InitialPostgres
     {
         /// <inheritdoc />
