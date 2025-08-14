@@ -12,6 +12,8 @@ import CommentForm from "./CommentForm";
 import { EditThreadDto } from "../interface/ThreadModel";
 import useVisitTracker from "../hooks/useVisitTracker";
 import { clear } from "console";
+import e from "express";
+import api from "../api/forums";
 const ThreadPage = () => {
   const {darkMode} = useTheme();
   const loggedIn = useStoreState((s) => s.user.loggedIn);
@@ -182,7 +184,14 @@ const ThreadPage = () => {
       URL.revokeObjectURL(url);
     }
   }
-
+  const fetchId = async(username: string) => {
+    try{
+      const { data} = await api.get(`/api/account/${username}`);
+      navigate(`/activity/${data.id}`)
+    }catch(err){
+      console.error("Failed to resolve user:", err);
+    }
+  }
   const handleEditReply = async(replyId: number, newContent: string, editRemoveImage: boolean, editImage: File | null, editRemoveVideo: boolean, editVideo: File|null) => {
     const dto: EditPostDto = {
       id: replyId,
@@ -328,17 +337,27 @@ const ThreadPage = () => {
     <div className="container mt-4">
       <Card style={{backgroundColor: bg, color: color}}>
         <div className="p-3 rounded">
-        <div className="d-flex flex-row align-items-center gap-1">
+        <div className="d-flex align-items-start gap-2">
           <img src={toAbs(Thread.forumIconUrl)} className="avatar"/>
-          <span className="small flex-col"><strong>r/{Thread.forumTitle} • {formatted}</strong></span>
+          <div className="d-flex flex-column">
+          
+          <span className="small flex-column">
+            <strong>r/{Thread.forumTitle} • {formatted}</strong></span>
+          <div className="fw-bold small d-flex flex-row">
+          <button type="button" className="border-0 rounded-pill  btn-outline-primary pe-1 align-baseline fw-bold " style={{backgroundColor: bg, color: color}} onClick={() => fetchId(Thread.authorUsername)}>
+            {Thread.authorUsername}
+            </button>
+          </div>
         </div>
-        <div className="fw-bold ms-lg-5 small"><Link to="/profile" className="no-hover">{Thread.authorUsername}</Link></div>
+        
+        
+        </div>
         </div>
         <Card.Body >
           <Card.Title >{Thread.title}</Card.Title>
           <br/>
           {Thread.imageUrl && (
-            <div className="mb-3">
+            <div className="mb-3 justify-content-center d-flex">
               <img
                 src={toAbs(Thread.imageUrl)}
                 alt="Thread Image"
@@ -347,7 +366,7 @@ const ThreadPage = () => {
             </div>
           )}
           {Thread.videoUrl && (
-            <div className="ms-3">
+            <div className="ms-3 justify-content-center d-flex">
               <video width="400" controls>
                 <source src={toAbs(Thread.videoUrl)} type={Thread.videoContentType ?? 'video/mp4'} />
               </video>
@@ -465,9 +484,11 @@ const ThreadPage = () => {
           const voteCount = postVoteCount[post.id] ?? post.likeCount;
           return (
             <div className="p-3 rounded">
-            <div className="d-flex flex-row align-items-center gap-1">
+            <div className="d-flex flex-row align-items-start gap-1">
                 <img src={post.profileImageUrl} className="avatar"/>
-                <span className="medium flex-col"><strong>{post.authorUsername}</strong> <small className="text-secondary">• {formatted2(post.createdAt)}</small></span>
+                <div className="d-flex flex-column">
+                <span className="medium flex-col"><button className="border-0 rounded-pill btn-outline-primary fw-bold" style={{backgroundColor: bg, color: color}} onClick={() => fetchId(post.authorUsername)}>{post.authorUsername}</button> <small className="text-secondary">• {formatted2(post.createdAt)}</small></span>
+                </div>
               </div>
               <p>{post.content}</p>
               {post.imageUrl && (

@@ -4,7 +4,9 @@ import AdminSidebar from "./AdminSidebar";
 import api from "../api/forums";
 import { useStoreActions, useStoreState } from "../interface/hooks";
 import { useTheme } from "./ThemeContext";
+import { useNavigate } from "react-router-dom";
 const AdminUsers = () => {
+    const navigate = useNavigate();
     const {darkMode} = useTheme();
     const users = useStoreState((s) => s.admin.users)
     const error = useStoreState((s) => s.admin.error);
@@ -13,6 +15,14 @@ const AdminUsers = () => {
     useEffect(() => {
         fetchUsers();
     },[fetchUsers]);
+    const fetchId = async(username: string) => {
+        try{
+        const { data} = await api.get(`/api/account/${username}`);
+        navigate(`/activity/${data.id}`)
+        }catch(err){
+        console.error("Failed to resolve user:", err);
+        }
+  }
     const unAdmin = async(username : string) => {
         UnAdmin(username)
         alert(`This user with username: ${username} has been revoked admin privileges`);
@@ -32,6 +42,8 @@ const AdminUsers = () => {
         alert(`This user with username: ${username} has been unbanned`)
         
     }
+    const bg = darkMode ? "#212529" : "#ffffff";
+    const color = darkMode ? "white": "black";
     return (
         <div className={`p-3 ${error ? "border border-danger" : "border border-transparent"} d-flex `}
             style={{borderWidth: "2px", borderRadius: "6px"}}
@@ -44,7 +56,7 @@ const AdminUsers = () => {
                 </div>
                 )}
                 <h2>Manage Users</h2>
-                <Table striped bordered hover >
+                <Table striped bordered hover className={darkMode ? "table-dark" : "table-light"}>
                     <thead>
                         <tr>
                             <th>Username</th>
@@ -57,7 +69,7 @@ const AdminUsers = () => {
                     <tbody>
                         {users.map(user => (
                             <tr key={user.id}>
-                                <td>{user.username}</td>
+                                <td><button onClick={() => fetchId(user.username)} className="border-0 rounded-pill btn-outline-primary fw-bold shadow-sm" style={{backgroundColor: bg, color: color}}>{user.username}</button></td>
                                 <td>{user.email}</td>
                                 <td>{user.banned ? "Banned": "Active"}</td>
                                 <td>{user.admin ? "Admin" : "User"}</td>

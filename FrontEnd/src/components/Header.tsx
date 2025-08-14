@@ -47,7 +47,14 @@ const Header = () =>{
     const bg = darkMode ? "#212529" : "#ffffff";
     const color = darkMode ? "white" : "black";
     return(
-        <Navbar bg={darkMode ? "dark" : "white"} expand="lg" className="navbar"  style={{zIndex: 1070, position: "sticky", top: "0"}}>
+        <Navbar 
+            sticky="top"                                 // Bootstrap’s sticky-top
+            expand="lg"
+            bg={darkMode ? "dark" : "light"}
+            data-bs-theme={darkMode ? "dark" : "light"}  // proper colors in BS 5.3
+            className="shadow-sm"
+            style={{ zIndex: 1100 }}
+        >
             <Container fluid>
                 <Navbar.Brand as={Link} to="/" style={{color: color }} className="fw-bold">
                 <img

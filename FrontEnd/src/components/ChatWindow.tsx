@@ -40,7 +40,7 @@ const ChatWindow = ({recipientId } : {recipientId: string}) => {
         setEditContent('')
         fetchMessages();
     }
-    const bg = darkMode ? "#3E4B58" : "#ffffff";
+    const bg = darkMode ? "#1a1a1b" : "#ffffff";
     const color = darkMode ? "white": "black";
     return (
         <div className="d-flex flex-column h-100 border-3" style={{backgroundColor: bg, color: color}}>

@@ -52,6 +52,18 @@ public class AccountController(UserManager<ApplicationUser> userManager, ThreadS
             }
         }
     }
+    [HttpGet("{username}")]
+    public async Task<IActionResult> GetUserId(string username)
+    {
+        var user = await _userManager.FindByNameAsync(username);
+        if (user == null)
+            return NotFound("User not found");
+        else
+        {
+            var id = user.Id;
+            return Ok(new { id });
+        }
+    }
     [HttpPost("change-email/{userId}")]
     public async Task<IActionResult> ChangeEmail(string userId, [FromBody] ChangeEmailDto model)
     {

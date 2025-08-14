@@ -144,7 +144,7 @@ const ForumPage = () => {
                 </div>
                 
             ) : (
-                <div className="container d-flex" style={{maxWidth: "900px"}}>
+                <div className="container d-flex" style={{maxWidth: "1000px"}}>
                     <div className="flex-grow-1" style={{maxWidth: "800px"}}>
                     {threads.map(thread => (
                         <ThreadCard key={thread.id} thread={thread} darkMode={darkMode}/>

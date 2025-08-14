@@ -154,9 +154,9 @@ const NewThread = () => {
             }}
             />
             {imagePreview && (
-            <div className="mt-2">
-                <img src={imagePreview} alt="Preview" style={{ maxHeight: "200px", marginBottom: "10px" }} />
-                <div>
+            <div className="mt-2 container">
+                <img src={imagePreview} alt="Preview" style={{ maxWidth: "400px", marginBottom: "10px" }} />
+                <div className="col-md-6 mx-auto">
                 <Button variant="outline-danger" size="sm" onClick={() => {
                     setImage(null);
                     setImagePreview(null);
@@ -184,19 +184,20 @@ const NewThread = () => {
                 }}/>
                 <br/>
                 {videoPreview && (
-                    <div>
-                        <video width="400" controls>
+                    <div className="container">
+                        <video width="500" controls>
                             <source src={videoPreview} />
                         </video>
+                        <div className="col-md-4 mx-auto">
                         <Button variant="outline-danger"
                             size="sm"
                             onClick={() => {
                                 setVideo(null);
                                 setVideoPreview(null)
-                            }} className="ms-2">
+                            }} className="mb-3">
                                 Remove Video
                             </Button>
-
+                        </div>
                     </div>
                 )}
         </Form.Group>

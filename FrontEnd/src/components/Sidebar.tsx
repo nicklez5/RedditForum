@@ -44,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
         <div
         className={`sidebar ${open ? 'open' : ''}`}
         style={{
+            left: "0",
             top: "36px",
             width: open ? '290px' : '50px',
             transition: 'width 0.3s ease', 
@@ -52,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({open, onClose}) => {
             background: bg,
             height: 'calc(100vh - 56px)',
             position: 'fixed',
-            zIndex: 1040,
+            zIndex: 1030,
             borderRight:`1px solid ${darkMode ? '#cccccc4c' : '#ccc'}`,
         }}
         >

@@ -35,6 +35,7 @@ import ForumList from './components/ForumList';
 import Settings from './components/Settings';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import ActivityPage from './components/Activity';
 const AppWrapper = () => {
   const rehydrated = useStoreRehydrated();
   if(!rehydrated) return <div>Loading...</div>
@@ -70,6 +71,7 @@ const AppWrapper = () => {
         <Route path="postForum" element={<NewForum />} />
         <Route path="messages" element={<ChatPage />}/>
         <Route path="messages/:id" element={<MessageConvo/>}/>
+        <Route path="activity/:id" element={<ActivityPage/>}/>
         <Route path="profile/:id" element={<ProfilePage EditMode={false}/>}/>
         <Route path="avatar/:id" element={<ProfilePage EditMode={true} />}/>
         <Route path="achievements" element={<Achievements/>}/>

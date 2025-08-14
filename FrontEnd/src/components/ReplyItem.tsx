@@ -6,6 +6,8 @@ import { formatDistanceToNow } from "date-fns";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp, faArrowDown, faComment, faEllipsis, faImage} from "@fortawesome/free-solid-svg-icons"
 import { useTheme } from "./ThemeContext";
+import api from "../api/forums";
+import { useNavigate } from "react-router-dom";
 interface Props{
     reply: Reply;
     onReplySubmit: (parentPostId: number, content: string, image: File | null, video: File| null) => void;
@@ -14,6 +16,9 @@ interface Props{
 }
 const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => {
     const {darkMode} = useTheme();
+    const navigate = useNavigate();
+    const bg = darkMode ? "#212529" : "#ffffff";
+    const color = darkMode ? "white": "black";
     const [showReplyBox, setShowReplyBox] = useState(false);
     const [replyText, setReplyText] = useState('');
     const [userVote, setUserVote] = useState(0);
@@ -103,11 +108,29 @@ const ReplyItem = ({reply, onReplySubmit, onLikeReply, onEditReply} : Props) => 
 
     const toAbs = (u: string) =>
     /^https?:\/\//i.test(u) ? u : `${API_BASE}/${u}`.replace(/([^:]\/)\/+/g, '$1');
+    const fetchId = async(username: string) => {
+    try{
+      const { data} = await api.get(`/api/account/${username}`);
+      navigate(`/activity/${data.id}`)
+    }catch(err){
+      console.error("Failed to resolve user:", err);
+    }
+  }
     return (
         <div className="ms-4 mt-2 border-start ps-3">
-            <div className="d-flex flex-row align-items-center gap-1">
+            <div className="d-flex flex-row align-items-start gap-1">
             <img src={reply.profileImageUrl} className="avatar"/>
-            <span className="medium flex-col"><strong>{reply.authorUsername} </strong><small className="text-secondary">• {formatted(reply.createdAt)}</small></span>
+            <div className="d-flex flex-column">
+            <span className="medium flex-col">
+                <button type="button" 
+                className="border-0 rounded-pill btn-outline-primary pe-1 align-baseline fw-bold" 
+                style={{backgroundColor: bg,color:color }}
+                onClick={ () => fetchId(reply.authorUsername)}
+                >
+                {reply.authorUsername}
+                </button>
+                <small className="text-secondary">• {formatted(reply.createdAt)}</small></span>
+            </div>
             </div>
             {isEditing ? (
                 <Form onSubmit={handleEditSubmit}>

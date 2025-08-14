@@ -100,7 +100,7 @@ const EditThreadModal: React.FC<EditThreadModalProps> = ({thread, show, onClose}
                     </Form.Group>
                     <Form.Group className="mb-3">
                         <Form.Label>Content</Form.Label>
-                        <Form.Control as="textarea" rows={4} value={content} onChange={(e) => setContent(e.target.value)} required />
+                        <Form.Control as="textarea" rows={4} value={content} onChange={(e) => setContent(e.target.value)} />
                     </Form.Group>
                     <Form.Group className="mb-3">
                         <Form.Label>Change Image</Form.Label>

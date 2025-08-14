@@ -13,7 +13,7 @@ interface Props{
 }
 const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
     const cardStyle = {
-        backgroundColor: darkMode ?  "#3E4B58" : "#ffffff",
+        backgroundColor: darkMode ?  "#1a1a1b" : "#ffffff",
         color: darkMode ? "white": "black",
         borderRadius: "8px",
         padding: "12px 16px",
@@ -78,20 +78,27 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
         </div>
         <h5 className="mt-3 fw-bold">{thread.title}</h5>
         <div className="mb-2" style={{color:color}}>{thread.content}</div>
-        <div>
+        <div className="d-flex justify-content-center">
             {img && (
-                <img src={resolveAsset(img)} style={{width: "200px"}} onError={() => console.error('CARD IMG ERROR', imgSrc)}/>
+                <>
+                <img src={resolveAsset(img)} style={{width: "400px"}} onError={() => console.error('CARD IMG ERROR', imgSrc)}/>
+                <hr/>
+                </>
             )}
         </div>
-        <div>
+        
+        <div className="d-flex justify-content-center">
             {video && (
-                <video width="400" controls>
+                <>
+                <video width="500" controls>
                     <source src={resolveAsset(video)} type={thread.videoContentType ?? "video/mp4"} onError={() => console.error('CARD VIDEO ERROR', videoSrc)} />
                 </video>
+                </>
             )}
         </div>
-        <div className="d-flex gap-3 text-muted small" onClick={(e) => e.stopPropagation()}>
-                <div className={`rounded-pill align-items-center gap-2 px-3 py-1 vote-box d-flex ${userVote === 1 ? "upvoted" : userVote === -1 ? "downvoted" : ""}`}>
+        <hr/>
+        <div className="d-flex gap-3 text-muted small justify-content-center" onClick={(e) => e.stopPropagation()}>
+                <div className={`rounded-pill align-items-center gap-2 px-2 py-1 vote-box d-flex ${userVote === 1 ? "upvoted" : userVote === -1 ? "downvoted" : ""}`}>
                     <button className={`vote-btn ${userVote === 1 ? "upvoted" : ""}`} onClick={(e) => {
                         e.preventDefault();
                         handleVote(1) 
@@ -103,11 +110,11 @@ const ThreadCard: React.FC<Props> = ({ thread, darkMode}) => {
                         }}><FontAwesomeIcon icon={faArrowDown} style={{color: color}} /></button>
                 </div>
                 
-                <div className="align-items-center d-flex py-1 px-3 gap-2 comment-box rounded-pill ms-3">
+                <div className="align-items-center d-flex py-1 px-3 gap-2 comment-box rounded-pill ms-4">
                             
                 <button className="comment-btn rounded-pill align-items-center border-0"><span className="me-3">{thread.postCount}</span><FontAwesomeIcon icon={faComment} /></button>
                 </div>
-                <Button variant={darkMode ? "white" : "dark"} size="sm" className="py-0 px-3">Share</Button>
+                
             </div>
         </Card>
         </NavLink>

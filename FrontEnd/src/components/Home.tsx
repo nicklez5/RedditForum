@@ -84,7 +84,7 @@ const Home: React.FC<HomeProps>= ({SortBy}) => {
         
         <div className="container" >
             <div className="row g-2">
-            <div className="d-flex justify-content-start mb-2">
+            <div className="d-flex justify-content-center mb-2">
             <Dropdown onSelect={handleSortChange}>
                 <Dropdown.Toggle variant={darkMode ? "dark" : "white"} id="dropdown-sort" className="position-relative top-50 start-50 translate-middle pe-xxl-5">
                     Sort: {sortBy.toUpperCase()}

@@ -21,21 +21,31 @@ const PostItem = ({post} : {post : Post}) => {
             <span className="small">Post Content</span>
             <p>{post.content}</p>
             <hr/>
-            <span className="small">Post Image</span>
-            <div className="d-flex align-items-center justify-content-center">
+            {post.imageKey && (
+                <>
+                <span className="small">Post Image</span>
+                <div className="d-flex align-items-center justify-content-center">
+                
+                <img src={toAbs(post.imageUrl!)} alt="" width="300" className=""/>
+                </div>
+                <hr/>
+            </>
+            )}
             
-            <img src={toAbs(post.imageUrl!)} alt="" width="300" className=""/>
-            </div>
-            <hr/>
-            <span className="small">Post Video</span>
-            <div className="d-flex align-items-center justify-content-center">
-            {post.videoKey ? <>
-            <video width="400" controls>
+            
+            {post.videoKey && (
+                <>
+                <span className="small">Post Video</span>
+                <div className="d-flex align-items-center justify-content-center">
+                <video width="400" controls>
                 <source src={toAbs(post.videoUrl!)} />
-            </video></> : <></>}
+                </video>
+                </div>
+                <hr/>
+                </>
+            )}
             
-            </div>
-            <hr/>
+ 
             <span className="small">Post Date</span>
             <p>{new Date(post.createdAt).toLocaleString()}</p>
             <hr/>
