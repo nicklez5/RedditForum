@@ -47,27 +47,29 @@ const Header = () =>{
     const bg = darkMode ? "#212529" : "#ffffff";
     const color = darkMode ? "white" : "black";
     return(
-        <Navbar 
-            sticky="top"                                 // Bootstrap’s sticky-top
-            expand="lg"
-            bg={darkMode ? "dark" : "light"}
-            data-bs-theme={darkMode ? "dark" : "light"}  // proper colors in BS 5.3
-            className="shadow-sm"
-            style={{ zIndex: 1100 }}
+        <Navbar
+        sticky="top"                 // or fixed="top" if you want it always fixed
+        expand="lg"
+        bg={darkMode ? "dark" : "light"}
+        data-bs-theme={darkMode ? "dark" : "light"}
+        className="shadow-sm"
+        style={{ zIndex: 1100, width: "100%" }}
         >
-            <Container fluid>
-                <Navbar.Brand as={Link} to="/" style={{color: color }} className="fw-bold">
-                <img
-                    src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-180x180.png"
-                    alt="Logo"
-                    width="32"
-                    height="32"
-                    className="d-inline-block align-top"
-                />{' '}
-                Reddit
-                </Navbar.Brand>
-                <div className="d-flex justify-content-center align-items-center h-100 mt-0">
-                    <Button variant="outline-secondary" onClick={toggleDarkMode} className={`theme-switcher-grid ${darkMode ? 'night-theme' : ''}`}>
+    <Container fluid>
+        <Navbar.Brand as={Link} to="/" style={{ color }}>
+        <img
+            src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-180x180.png"
+            alt="Logo"
+            width="32"
+            height="32"
+            className="d-inline-block align-top"
+        />{' '}
+        Reddit
+        </Navbar.Brand>
+
+    {/* Keep this button inside the navbar, but not between brand and search on small screens */}
+    <div className="d-none d-lg-flex">
+      <Button variant="outline-secondary" onClick={toggleDarkMode} className={`theme-switcher-grid ${darkMode ? 'night-theme' : ''}`}>
                         <div className="sun" id="sun" aria-hidden="true"></div>
                         <div className="moon-overlay" id="moon-overlay" aria-hidden="true"></div>
                         <div
@@ -96,47 +98,104 @@ const Header = () =>{
                         <div className="star" id="star4" aria-hidden="true"></div>
                         
                     </Button>
-                    </div>
-                <Navbar.Toggle aria-controls="basic-navbar-nav " />
-                <Navbar.Collapse id="basic-navbar-nav">
-                    <div className="d-flex justify-content-center mx-auto w-100">
-                    <Form className="d-flex justify-content-between w-25" onSubmit={handleSearch}>
-                    <div className="position-relative d-flex flex-md-fill ms-5">
-                    <FormControl type="search" placeholder="Search" className="me-2 searchBar ps-5" style={{backgroundColor: bg, color: color}} value={query} onChange={(e) => setQuery(e.target.value)}/>
-                    <FontAwesomeIcon
-                        
-                        icon={faSearch}
-                        className="position-absolute top-50 start-0 translate-middle-y ms-3"
-                        style={{ pointerEvents: 'none', color: color}}
-                    />
-                    </div>
-                    <Button variant="outline-success" type="submit" className="d-none">Search</Button>
-                    </Form>
-                    </div>
-                    
-                    <div className="d-flex align-content-between gap-0">
-                    {token !== null ? (<>
-                    <div className="position-relative d-inline-block">
-                        <Link to="/notifications"><Button variant="outline-secondary" className="rounded-pill p-3 border-0" style={{color: color}}><FontAwesomeIcon icon={faBell} /></Button>{unreadCount > 0 && (
-                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger mt-2" style={{ fontSize: '0.75rem' }}>
-                                {unreadCount}
-                                <span className="visually-hidden">unread notifications</span>
-                            </span>
-                        )}
-                            </Link>
+    </div>
 
-                    </div>
-                    <div className="d-inline-block pb-2">
-                        <Link to="/messages"><Button variant="outline-secondary" className="rounded-pill py-1 mt-2 border-0  px-4" style={{color: color}}><FontAwesomeIcon icon={faComments} className="rounded-pill mt-2"/></Button></Link>
-                    </div>
-                    <div className="d-inline-block pt-2">
-                        
-                        <Link to="/postThread"><Button variant="outline-secondary"  className="rounded-pill p-1 border-0" style={{color: color, maxHeight: "60px"}}><div className="d-flex align-content-center mb-1 h-100 fs-6 mt-1  rounded-pill"><FontAwesomeIcon icon={faPlus} className="flex-row mx-2  mt-1 fs-5"/>Create </div></Button></Link>
-                    </div>
-                    <div className="d-inline-block">
+    <Navbar.Toggle aria-controls="nav" />
+    <Navbar.Collapse id="nav" className="w-100">
 
-                        <div className="dropdown ">
-                            <a className="btn btn-secondary dropdown-toggle border-0 rounded-pill  " href="/" role="button" data-bs-toggle="dropdown" aria-expanded="false" style={{backgroundColor: bg, color : color}}>
+      {/* SEARCH: take available space and sit before the right block */}
+      <Form onSubmit={handleSearch} className="d-flex flex-fill me-auto ms-lg-4">
+        <div className="position-relative d-flex flex-fill justify-content-center">
+          <FormControl
+            type="search"
+            placeholder="Search"
+            className="searchBar ps-5"
+            style={{ backgroundColor: bg, color }}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <FontAwesomeIcon
+            icon={faSearch}
+            className="position-absolute top-50 start-0 translate-middle-y ms-3"
+            style={{ pointerEvents: 'none', color }}
+          />
+        </div>
+        <Button type="submit" className="d-none">Search</Button>
+      </Form>
+
+      {/* Right side: push to end with ms-auto */}
+      <Nav className="ms-auto align-items-center gap-2">
+
+        {/* show the theme button on small screens too */}
+        <div className="d-flex d-lg-none">
+          <Button variant="outline-secondary" onClick={toggleDarkMode} className={`theme-switcher-grid ${darkMode ? 'night-theme' : ''}`}>
+                        <div className="sun" id="sun" aria-hidden="true"></div>
+                        <div className="moon-overlay" id="moon-overlay" aria-hidden="true"></div>
+                        <div
+                        className="cloud-ball cloud-ball-left"
+                        id="ball1"
+                        aria-hidden="true"
+                        ></div>
+                        <div
+                        className="cloud-ball cloud-ball-middle"
+                        id="ball2"
+                        aria-hidden="true"
+                        ></div>
+                        <div
+                        className="cloud-ball cloud-ball-right"
+                        id="ball3"
+                        aria-hidden="true"
+                        ></div>
+                        <div
+                        className="cloud-ball cloud-ball-top"
+                        id="ball4"
+                        aria-hidden="true"
+                        ></div>
+                        <div className="star" id="star1" aria-hidden="true"></div>
+                        <div className="star" id="star2" aria-hidden="true"></div>
+                        <div className="star" id="star3" aria-hidden="true"></div>
+                        <div className="star" id="star4" aria-hidden="true"></div>
+                        
+                    </Button>
+        </div>
+
+        {token ? (
+          <>
+            {/* notifications */}
+            <div className="position-relative">
+              <Link to="/notifications">
+                <Button variant="outline-secondary" className="rounded-pill p-3 border-0" style={{ color }}>
+                  <FontAwesomeIcon icon={faBell} />
+                </Button>
+                {unreadCount > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger mt-2" style={{ fontSize: '0.75rem' }}>
+                    {unreadCount}
+                    <span className="visually-hidden">unread notifications</span>
+                  </span>
+                )}
+              </Link>
+            </div>
+
+            {/* messages */}
+            <Link to="/messages">
+              <Button variant="outline-secondary" className="rounded-pill py-1 mt-2 border-0 px-4" style={{ color }}>
+                <FontAwesomeIcon icon={faComments} className="mt-2" />
+              </Button>
+            </Link>
+
+            {/* create */}
+            <Link to="/postThread">
+              <Button variant="outline-secondary" className="rounded-pill p-1 border-0" style={{ color, maxHeight: 60 }}>
+                <div className="d-flex align-items-center fs-6 mt-1">
+                  <FontAwesomeIcon icon={faPlus} className="mx-2 mt-1 fs-5" />
+                  Create
+                </div>
+              </Button>
+            </Link>
+
+            {/* avatar dropdown (unchanged) */}
+            <div className="dropdown">
+             <a className="btn btn-secondary dropdown-toggle border-0 rounded-pill  " href="/" role="button" data-bs-toggle="dropdown" aria-expanded="false" style={{backgroundColor: bg, color : color}}>
                                 <div className="avatar-wrapper ">
                                 <img src={profile?.profileImageUrl!} alt="profile" style={{
                                                                                             width: '50px',
@@ -186,32 +245,29 @@ const Header = () =>{
                                 <li><a className="dropdown-item px-3 py-2" ><Button variant="outline-secondary" as={Link as any} onClick={handleLogout} className="p-2 rounded-5 logout-btn " style={{color: color}}><FontAwesomeIcon icon={faRightFromBracket}/> Logout </Button></a></li>
                                 <li><a className="dropdown-item px-3 py-2" href="/settings">Settings</a></li>
                             </ul>
-                        </div>
-                        
-                    </div>
-                    </>
-                    ) : (
-                        <>
-                            <div className="d-inline-block">
-                                {!token && (<Link to="/" className="btn rounded-pill py-3 px-4 login-btn2" style={{backgroundColor: "#DB3F29", color: "white", textDecoration: "none", fontWeight: "bold", whiteSpace: "nowrap", minWidth: "auto"}}>Log In</Link> )}
-                            </div>
-                            <div className='dropdown ms-2'>
-                                <button className="btn btn-secondary login-btn dropdown-toggle rounded-circle mt-1 py-3 px-4 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{backgroundColor: bg, color: color}}>
+            </div>
+          </>
+        ) : (
+          <>
+            <Link to="/" className="btn rounded-pill py-3 px-4 login-btn2"
+              style={{ backgroundColor: "#DB3F29", color: "white", fontWeight: "bold", whiteSpace: "nowrap" }}>
+              Log In
+            </Link>
+            <div className="dropdown ms-2">
+             <button className="btn btn-secondary login-btn dropdown-toggle rounded-circle mt-1 py-3 px-4 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{backgroundColor: bg, color: color}}>
                                         <FontAwesomeIcon icon={faEllipsis} />
-                                </button>
-                                        <ul className="dropdown-menu border shadow p-1" style={{backgroundColor: bg, color: color, transform: "translateX(-125px)", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
-                                            <li><a className="dropdown-item px-3 py-2" href="/"><FontAwesomeIcon icon={faDoorOpen} /> Log In / Sign Up</a></li>
-                                        </ul>
-                                
-                            </div>
-                        </>
-                    )}
-                    
-                    
-                    </div>
-                </Navbar.Collapse>
-            </Container>
-        </Navbar>
+            </button>
+                    <ul className="dropdown-menu border shadow p-1" style={{backgroundColor: bg, color: color, transform: "translateX(-125px)", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
+                        <li><a className="dropdown-item px-3 py-2" href="/"><FontAwesomeIcon icon={faDoorOpen} /> Log In / Sign Up</a></li>
+                    </ul>
+            </div>
+          </>
+        )}
+      </Nav>
+    </Navbar.Collapse>
+  </Container>
+</Navbar>
+
     )
 }
 export default Header
