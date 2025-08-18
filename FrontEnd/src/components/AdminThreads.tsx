@@ -15,7 +15,7 @@ const AdminThreads = () => {
         GetAllThreads();
     },[])
     return (
-        <Container fluid>
+        <Container fluid className='mt-5'>
             <Row>
                 <Col md={2}>
                     <AdminSidebar active="threads" />

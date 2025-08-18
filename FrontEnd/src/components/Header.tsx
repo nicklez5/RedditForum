@@ -178,7 +178,7 @@ const Header = () =>{
 
             {/* messages */}
             <Link to="/messages">
-              <Button variant="outline-secondary" className="rounded-pill py-1 mt-2 border-0 px-4" style={{ color }}>
+              <Button variant="outline-secondary" className="rounded-pill py-1 mt-1 border-0 px-4" style={{ color }}>
                 <FontAwesomeIcon icon={faComments} className="mt-2" />
               </Button>
             </Link>

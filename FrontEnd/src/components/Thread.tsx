@@ -334,7 +334,7 @@ const ThreadPage = () => {
   const formatted = formatDistanceToNow(new Date(Thread.createdAt), {addSuffix: true})
   const formatted2 = (date: Date) => formatDistanceToNow(new Date(date), {addSuffix: true})
   return (
-    <div className="container mt-4">
+    <div className="container mt-5">
       <Card style={{backgroundColor: bg, color: color}}>
         <div className="p-3 rounded">
         <div className="d-flex align-items-start gap-2">

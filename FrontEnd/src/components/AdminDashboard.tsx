@@ -20,7 +20,7 @@ const AdminDashboard = () => {
         )
     }
     return (
-        <Container fluid>
+        <Container fluid className="mt-5">
             <Row>
                 <Col md={2} className="p-0">
                     <AdminSidebar active="dashboard" />

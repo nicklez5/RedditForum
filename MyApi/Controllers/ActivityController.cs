@@ -95,10 +95,10 @@ public class ActivityController(ApplicationDbContext db, UserManager<Application
                                 : "Route",
                             Title = v.EntityType == PageEntityType.Thread ? _db.Threads.Where(t => t.Id == v.EntityIntId).Select(t => t.Title).FirstOrDefault()
                                     : v.EntityType == PageEntityType.Forum ? _db.Forums.Where(f => f.Id == v.EntityIntId).Select(f => f.Description).FirstOrDefault()
-                                    : v.Path,
+                                    : "Profile Page",
                             Url = v.EntityType == PageEntityType.Thread ? "/threads/" + v.EntityIntId
                                 : v.EntityType == PageEntityType.Forum ? "/forum/" + v.EntityIntId
-                                : v.EntityType == PageEntityType.Profile ? "/profile/" + v.EntityId
+                                : v.EntityType == PageEntityType.Profile ? "Profile"
                                 : v.Path,
                             StartedAt = v.StartedAt,
                             DurationMs = v.DurationMs

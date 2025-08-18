@@ -49,7 +49,7 @@ export function mapVisitToItem(v: PageVisit): VisitItemDto {
       const label = parts[1] ?? "user";
       kind = `u/${label}`;
       title = `Profile – ${label}`;
-      url = v.path;
+      url = "";
       break;
     }
     case "Route":

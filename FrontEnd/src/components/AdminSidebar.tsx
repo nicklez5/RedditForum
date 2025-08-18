@@ -13,7 +13,7 @@ const AdminSidebar = ({active} : AdminSidebarProps)  => {
         return darkMode ? "text-white" : "text-dark"
     }
     return (
-        <div className={`${darkMode ? 'bg-dark text-white' : 'bg-light text-dark'} p-3 vh-100`}>
+        <div className={`${darkMode ? 'bg-dark text-white' : 'bg-light text-dark'} p-3 vh-100 mt-2`}>
             <h4 className="mb-4">Admin Panel</h4>
             <Nav className="flex-column gap-2">
                 <Nav.Link as={Link} to="/admin" active={active === "dashboard"} className={getLinkClass(active === "dashboard")}>Dashboard</Nav.Link> 

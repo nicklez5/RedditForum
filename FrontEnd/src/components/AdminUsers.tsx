@@ -45,11 +45,11 @@ const AdminUsers = () => {
     const bg = darkMode ? "#212529" : "#ffffff";
     const color = darkMode ? "white": "black";
     return (
-        <div className={`p-3 ${error ? "border border-danger" : "border border-transparent"} d-flex `}
+        <div className={`p-3 ${error ? "border border-danger" : "border border-transparent"} d-flex mt-4 me-2`}
             style={{borderWidth: "2px", borderRadius: "6px"}}
         >
             <AdminSidebar active="users" />
-            <div className="p-4 flex-grow-1">
+            <div className="p-4 flex-grow-1 mt-5">
                 {error && (
                 <div className="alert alert-danger py-2 my-2">
                     {error}
