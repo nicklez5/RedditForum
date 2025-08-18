@@ -156,7 +156,7 @@ public class AuthController(
         var tokenBytes = Encoding.UTF8.GetBytes(token);
         var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
         var resetLink = $"{dto.ClientUrl}/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
-        await _emailService.SendEmailAsync(user.Email!, "Reset Your Password", $"Click to reset: {resetLink}");
+        await _emailService.SendEmailAsync(user.Email!, "Reset Your Password", $"<p>Click to reset: <a href=\"{resetLink}\">Verify my email</a></p>");
         return Ok("If an account with that email exists, a reset link has been sent.");
     }
     [HttpPost("reset-password")]

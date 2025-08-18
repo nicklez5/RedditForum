@@ -20,9 +20,13 @@ var builder = WebApplication.CreateBuilder(args);
 var allowedOrigins = builder.Configuration["Cors:Origins"]?
     .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     ?? Array.Empty<string>();
-
+builder.Services.AddOptions<EmailOptions>()
+    .Bind(builder.Configuration.GetSection("Email"))
+    .ValidateDataAnnotations()
+    .Validate(o => !string.IsNullOrWhiteSpace(o.Smtp.Password), "Missing SMTP password")
+    .ValidateOnStart();
 builder.Services.AddScoped<NotificationService>();
-builder.Services.AddScoped<IEmailService, SendGridEmailService>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<ForumService>();
 builder.Services.AddScoped<ThreadService>();
 builder.Services.AddScoped<PostService>();
@@ -137,6 +141,7 @@ var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy =>
         policy.RequireRole("Admin"));
+        
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
