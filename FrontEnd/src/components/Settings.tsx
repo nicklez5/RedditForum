@@ -74,7 +74,7 @@ const Settings = () => {
     if(error) return <div className="text-danger">Error: {error}</div>
     return (
         <div className="d-flex justify-content-center mt-5">
-        <div className="w-100" style={{maxWidth: "600px"}}>
+        <div className="w-100 mt-3" style={{maxWidth: "600px"}}>
         {message && <Alert variant="success" dismissible>{message}</Alert>}
         {error && <Alert variant="danger" dismissible>{error}</Alert>}
         {error1 && <Alert variant="danger" dismissible>{error1}</Alert>}

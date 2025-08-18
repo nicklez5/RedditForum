@@ -74,11 +74,11 @@ const ForumPage = () => {
         <div>
             <div style={{backgroundColor: bg, color: color}}>
                 <div className="position-relative" style={{height: '160px', overflow: "hidden"}}>
-                    <img src={toAbs(selectedForum!.bannerUrl)} alt="" style={{height: "100%",width:"100%",objectFit: "cover"}} />
+                    <img src={toAbs(selectedForum?.bannerUrl!)} alt="" style={{height: "100%",width:"100%",objectFit: "cover"}} />
                     <div className="container d-flex justify-content-between align-items-center position-absolute" style={{bottom: "-36px", left: "50%", transform: 'translateX(-50%)', zIndex: 2,  paddingLeft: '1rem', maxWidth: "900px" , width: '100%', paddingRight: "1rem"}}>
                         <div className="d-flex align-items-center">
                         <img
-                            src={toAbs(selectedForum!.iconUrl)}
+                            src={toAbs(selectedForum?.iconUrl!)}
                             alt="icon"
                             style={{
                             width: "96px",
@@ -88,7 +88,7 @@ const ForumPage = () => {
                             backgroundColor: "white", // white ring border
                             }}
                         />
-                        <h4 className="ms-3 mb-0 fw-bolder">r/{selectedForum?.title}</h4>
+                        <h4 className="ms-3 mb-0 fw-bolder">r/{selectedForum?.title!}</h4>
                     </div>
                 </div>
                 </div>
@@ -169,8 +169,8 @@ const ForumPage = () => {
                         height: "fit-content"
                         }}
                     >
-                        <h5>{selectedForum!.title}</h5>
-                        <p>{selectedForum!.description}</p>
+                        <h5>{selectedForum?.title}</h5>
+                        <p>{selectedForum?.description}</p>
                         <hr />
                         <div>
                         <strong>{selectedForum?.users.length}</strong> Members<br />

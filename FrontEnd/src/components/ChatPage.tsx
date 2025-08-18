@@ -15,7 +15,7 @@ const ChatPage = () => {
         <Container fluid className="p-0" style={{height: '100vh'}}>
             <Row className="h-100">
                 <Col md={3} className={`${darkMode ? 'bg-dark text-white overflow-auto' : 'bg-white text-black overflow-auto'}`}>
-                     <div className="p-3">
+                     <div className="p-3 mt-5">
                         <NewChatSelector />
                         <hr />
                         <ChatSidebar activeUser={activeUser} onSelectUser={(userId) => setActiveUser(userId)}/>

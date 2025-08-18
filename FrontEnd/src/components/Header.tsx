@@ -53,7 +53,7 @@ const Header = () =>{
         bg={darkMode ? "dark" : "light"}
         data-bs-theme={darkMode ? "dark" : "light"}
         className="shadow-sm"
-        style={{ zIndex: 1100, width: "100%" }}
+        style={{ zIndex: 1200, width: "100%" }}
         >
     <Container fluid>
         <Navbar.Brand as={Link} to="/" style={{ color }}>
@@ -104,8 +104,8 @@ const Header = () =>{
     <Navbar.Collapse id="nav" className="w-100">
 
       {/* SEARCH: take available space and sit before the right block */}
-      <Form onSubmit={handleSearch} className="d-flex flex-fill me-auto ms-lg-4">
-        <div className="position-relative d-flex flex-fill justify-content-center">
+      <Form onSubmit={handleSearch} className="d-flex flex-fill me-auto ms-lg-4 justify-content-center">
+        <div className="position-relative d-flex justify-content-center">
           <FormControl
             type="search"
             placeholder="Search"

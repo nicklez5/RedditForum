@@ -315,7 +315,7 @@ button.btn.btn-outline-secondary:hover{
 }
 a:hover{
   /*background-color: #7575759c !important; */
-  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, 0.551);
+  box-shadow: 0 .125rem .125rem rgba(0, 0, 0, 0.551);
   border-radius: 16px;
 }
 .avatar{

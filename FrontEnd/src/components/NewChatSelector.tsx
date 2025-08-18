@@ -22,6 +22,7 @@ const NewChatSelector = () => {
     }
     return (
         <Select
+
             placeholder="Start a new conversations..."
             value={selected}
             onChange={handleChange}

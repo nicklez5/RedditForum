@@ -43,7 +43,7 @@ const ChatWindow = ({recipientId } : {recipientId: string}) => {
     const bg = darkMode ? "#1a1a1b" : "#ffffff";
     const color = darkMode ? "white": "black";
     return (
-        <div className="d-flex flex-column h-100 border-3" style={{backgroundColor: bg, color: color}}>
+        <div className="d-flex flex-column h-100 border-3 mt-5" style={{backgroundColor: bg, color: color}}>
             <div className="flex-grow-1 overflow-auto p-3 flex-column justify-content-end " style={{maxHeight: 'calc(100vh- 120px)'}}>
                 {[...filteredMessages].reverse().map((msg) => (
                     <div key={msg.id} className={`mb-2 d-flex ${msg.senderId === currentUser!.id ? 'justify-content-end' : 'justify-content-start'}`}
