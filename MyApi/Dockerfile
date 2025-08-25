@@ -2,10 +2,10 @@
 FROM node:20-alpine AS fe
 WORKDIR /fe
 # copy only manifests first for better caching
-COPY FrontEnd/package*.json ./
+COPY frontendnd/package*.json ./
 RUN npm ci
 # now copy the rest and build
-COPY FrontEnd/ ./
+COPY frontendnd/ ./
 # If API+SPA share the same origin in prod, you can leave baseURL empty in code.
 # If you need a value at build time, uncomment ARG/ENV and set --build-arg on Render.
 # ARG REACT_APP_API_BASE_URL
