@@ -53,6 +53,7 @@ public class AccountController(UserManager<ApplicationUser> userManager, ThreadS
         }
     }
     [HttpGet("{username}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUserId(string username)
     {
         var user = await _userManager.FindByNameAsync(username);
@@ -84,6 +85,7 @@ public class AccountController(UserManager<ApplicationUser> userManager, ThreadS
         }
     }
     [HttpGet("activity/{userId}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUserActivity(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
@@ -92,7 +94,7 @@ public class AccountController(UserManager<ApplicationUser> userManager, ThreadS
         var viewerUserId = User.Identity?.IsAuthenticated == true
         ? User.FindFirstValue(ClaimTypes.NameIdentifier)
         : null;
-        var posts = await _postService.GetPostsByUserAsync(userId,viewerUserId);
+        var posts = await _postService.GetPostsByUserAsync(userId, viewerUserId);
 
         var threads = await _threadService.GetThreadsByUserAsync(userId);
 
@@ -101,7 +103,7 @@ public class AccountController(UserManager<ApplicationUser> userManager, ThreadS
         var totalSubscribedForumCount = forums.Count(f => f.Users.Any(u => u.Username == user.UserName));
         var totalPostLikeCount = posts.Sum(p => p.LikeCount);
         var totalThreadLikeCount = threads.Sum(t => t.LikeCount);
-        return Ok(new UserActivityDto { Posts = posts, Threads = threads, Forums = createdForums,TotalPostLikeCount = totalPostLikeCount, TotalThreadLikeCount = totalThreadLikeCount, TotalSubscribedForumCount = totalSubscribedForumCount });
+        return Ok(new UserActivityDto { Posts = posts, Threads = threads, Forums = createdForums, TotalPostLikeCount = totalPostLikeCount, TotalThreadLikeCount = totalThreadLikeCount, TotalSubscribedForumCount = totalSubscribedForumCount });
     }
     [HttpGet("subscribed/{userId}")]
     public async Task<IActionResult> GetUserSubscribedActivity(string userId)

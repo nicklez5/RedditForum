@@ -106,6 +106,7 @@ public class ProfileController(UserManager<ApplicationUser> userManager, Profile
         return Ok(profile);
     }
     [HttpGet("{userId}")]
+    [AllowAnonymous]
     public async Task<IActionResult> ViewProfile(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
