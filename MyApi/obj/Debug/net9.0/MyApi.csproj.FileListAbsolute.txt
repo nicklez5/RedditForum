@@ -208,3 +208,6 @@ C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\zonpmqdv09-2sbgad
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\exwvae92p7-4d4jhx0lp2.gz
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\hsdvzc42dm-efph91rgqv.gz
 C:\Users\pc\Documents\CSharp\MyApi\obj\Debug\net9.0\compressed\z236ymvfb6-z75njncjqd.gz
+C:\Users\pc\Documents\CSharp\MyApi\bin\Debug\net9.0\BouncyCastle.Cryptography.dll
+C:\Users\pc\Documents\CSharp\MyApi\bin\Debug\net9.0\MailKit.dll
+C:\Users\pc\Documents\CSharp\MyApi\bin\Debug\net9.0\MimeKit.dll

@@ -284,7 +284,10 @@ const Header = () => {
                                 <ReactSwitch onChange={toggleDarkMode} checked={darkMode === true}/>
                             </div>
                         </a>
-                        <button className={`dropdown-item fs-5 ${darkMode ? 'text-white' : 'text-black'} `} onClick={() => logOut()}>
+                        <button className={`dropdown-item fs-5 ${darkMode ? 'text-white' : 'text-black'} `} onClick={() => {
+                            logOut()
+                            navigate("/")
+                            }}>
                             <FontAwesomeIcon icon={faDoorOpen}/>
                             Log out
                         </button>

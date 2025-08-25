@@ -768,6 +768,7 @@ public class ThreadService(ApplicationDbContext context, NotificationService not
                 VideoKey = t.VideoKey,
                 VideoContentType = t.VideoContentType,
                 AuthorUsername = t.Author?.UserName ?? "Unknown",
+                AuthorProfileImageUrl = t.Author?.ProfileImageUrl,
                 CreatedAt = t.CreatedAt,
                 ForumId = t.ForumId,
                 ForumTitle = t.Forum?.Title ?? "Unknown",

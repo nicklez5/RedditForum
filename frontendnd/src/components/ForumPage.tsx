@@ -14,7 +14,9 @@ import { CreateForumDto, EditForumDto } from "../interface/ForumModel";
 import { CreateThreadDto } from "../interface/ThreadModel";
 import CreateThreadModal from "./CreateThreadModal";
 import EditForumModal from "./EditForumModal";
-
+import { RegisterDto } from "../interface/UserModel";
+import RegisterModal from "./Signup";
+type SortBy = "seeded" | "hot" | "new"
 const ForumPage = () => {
     const navigate = useNavigate();
     const fetchForumId = useStoreActions((a) => a.forum.GetForumById);
@@ -27,15 +29,21 @@ const ForumPage = () => {
     const loggedIn = useStoreState((s) => s.user.loggedIn);
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
+    const [show3,setShow3] = useState(false);
     const open = () => setShow(true);
     const close = () => setShow(false);
     const open2 = () => setShow2(true);
     const close2 = () => setShow2(false);
+    const open3 = () => setShow3(true);
+    const close3 = () => setShow3(false);
+    const register = useStoreActions((a) => a.user.register)
     const deleteForum = useStoreActions((a) => a.forum.DeleteForum);
     const createThread = useStoreActions((a) => a.thread.CreateThread)
     const editForum = useStoreActions((a) => a.forum.EditForum);
     const Username = useStoreState((s) => s.user.Profile?.username);
-
+    const [sort ,setSort] = useState<SortBy>("new")
+    const searchByFilter = useStoreActions((a) => a.thread.SearchByForumFilterThread)
+    
     const handleSubmit = async(data: {title: string, content: string, image?: File | null, video? : File| null, forumId: number}) => {
             if(!loggedIn)
                 return;
@@ -61,7 +69,18 @@ const ForumPage = () => {
         await editForum(dto);
         fetchForumId(parseInt(id!));
     }
-
+    const handleSubmit3 = async(data: {username: string, email: string, firstName: string, lastName: string, password: string, confirmPassword: string, role: string }) => {
+            const dto: RegisterDto ={
+                username: data.username,
+                email: data.email,
+                firstName : data.firstName,
+                lastName: data.lastName,
+                password: data.password,
+                confirmPassword: data.confirmPassword,
+                role: data.role
+            }
+            await register(dto);
+        }
     useEffect(() => {
         if(id){
             fetchForumId(parseInt(id))
@@ -76,6 +95,15 @@ const ForumPage = () => {
         }
         
     },[])
+    const apply = async(next:SortBy) => {
+        setSort(next)
+        await searchByFilter({sortBy: next, id: id!})
+        console.log("threads:", threads_list.map(t => t.id));
+    }
+    useEffect(() => {
+        searchByFilter({sortBy: sort, id: id!})
+        
+    },[id])
     const [showCommentBox, setShowCommentBox] = useState(false);
     const panelBg = darkMode ? "bg-dark" : "bg-body-secondary";
     const threads = forum?.threads;
@@ -120,13 +148,17 @@ const ForumPage = () => {
 
                 </div>
                 <div className="d-flex justify-content-center">
-                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal opacity-75" style={{color: "black"}}><FontAwesomeIcon icon={faPlus}/>Register</button>
-                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal text-white border-2" style={{color: "black", backgroundColor: "#272a30"}}><FontAwesomeIcon icon={faKey}/>Log in</button>
+                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal opacity-75" style={{color: "black"}} onClick={open3}><FontAwesomeIcon icon={faPlus}/>Register</button>
+                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal text-white border-2" style={{color: "black", backgroundColor: "#272a30"}} onClick={() => navigate('/login')}><FontAwesomeIcon icon={faKey}/>Log in</button>
                 </div>
                 </div>
                 </div>
             )}
-
+            <RegisterModal
+            show={show3}
+            onClose={close3}
+            onSubmit={handleSubmit3}
+            />
             <br/>
             <div className="d-flex justify-content-between text-white  fs-5 mx-auto  container"  >
                        <div className="border-1 border  home_tool w-100 align-items-start d-flex ps-3">
@@ -197,9 +229,21 @@ const ForumPage = () => {
                                     Filters
                                 </button>
                                 <ul className="dropdown-menu" style={{height: "105px"}}>
-                                    <button className="w-100  border-0 shadow-md">Random</button>
-                                    <button className="w-100  border-0 shadow-md">Newest</button>
-                                    <button className="w-100  border-0 shadow-md">Hottest</button>
+                                    <button 
+                                        className={`dropdown-item ${sort === "seeded" ? "active" : ""} w-100  border-0 shadow-md`}
+                                        type="button" 
+                                        onClick={() => apply("seeded")}
+                                        >Random</button>
+                                    <button 
+                                        className={`dropdown-item ${sort === "new" ? "active" : ""} w-100  border-0 shadow-md`}
+                                        type="button" 
+                                        onClick={() => apply("new")}
+                                        >Newest</button>
+                                    <button 
+                                        className={`dropdown-item ${sort === "hot" ? "active" : ""} w-100  border-0 shadow-md`}
+                                        type="button" 
+                                        onClick={() => apply("hot")}
+                                        >Hottest</button>
                                 </ul>
                             </div>
                             
@@ -217,7 +261,7 @@ const ForumPage = () => {
             //console.log(posts);
             
             return (
-                <div className={`d-flex justify-content-end text-white mx-auto  container `}>
+                <div className={`d-flex justify-content-end text-white mx-auto  container `} key={thd.id}>
                     <div className={`d-flex align-items-center border border-1 w-100 ${panelBg} p-3`}>
                         <img src={thd.authorProfileImageUrl} className="avatar" />
                         <div className={`d-flex align-items-start flex-column w-25  px-3 text-wrap ${darkMode ? 'text-white' : 'text-dark'}`} >

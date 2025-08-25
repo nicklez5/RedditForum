@@ -9,12 +9,14 @@ import CommentBox from "./CommentBox";
 import api from "../api/forums";
 import { formatWhen } from "../utils/dates";
 import { CreatePostDto, Post, User } from "../interface/PostModel";
+import {RegisterDto} from "../interface/UserModel";
 import { Profile } from "../interface/ProfileModel";
 import { UserReputation } from "./UserReputation";
 import { buildQueries } from "@testing-library/dom";
 import { PostCard } from "./PostCard";
 import { EditThreadDto } from "../interface/ThreadModel";
 import EditThreadModal from "./EditThreadModel";
+import RegisterModal from "./Signup";
 const ThreadPage = () => {
     const [like, setLike] = useState(false);
     const [likePost, setLikePost] = useState(false);
@@ -33,6 +35,10 @@ const ThreadPage = () => {
     const [show, setShow] = useState(false);
     const open = () => setShow(true);
     const close = () => setShow(false);
+    const [show2, setShow2] = useState(false);
+    const open2 = () => setShow2(true);
+    const close2 = () => setShow2(false);
+    const register = useStoreActions((a) => a.user.register)
     const [reply, setReply] = useState('');
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview , setImagePreview] = useState<string | null>(null);
@@ -46,6 +52,18 @@ const ThreadPage = () => {
     const user = useStoreState((s) => s.user.Profile)
     const selectedThread = useStoreState((s) => s.thread.selectedThread);
     const [posts ,setPosts] = useState<Post[]>(thread?.posts ?? []);
+    const handleSubmit3 = async(data: {username: string, email: string, firstName: string, lastName: string, password: string, confirmPassword: string, role: string }) => {
+        const dto: RegisterDto ={
+            username: data.username,
+            email: data.email,
+            firstName : data.firstName,
+            lastName: data.lastName,
+            password: data.password,
+            confirmPassword: data.confirmPassword,
+            role: data.role
+        }
+        await register(dto);
+    }
     const handleCancel = () => {
         setReply('')
         setImagePreview(null);
@@ -206,12 +224,17 @@ const ThreadPage = () => {
 
                 </div>
                 <div className="d-flex justify-content-center">
-                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal opacity-75" style={{color: "black"}}><FontAwesomeIcon icon={faPlus}/>Register</button>
-                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal text-white border-2" style={{color: "black", backgroundColor: "#272a30"}}><FontAwesomeIcon icon={faKey}/>Log in</button>
+                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal opacity-75" style={{color: "black"}} onClick={open2}><FontAwesomeIcon icon={faPlus}/>Register</button>
+                    <button className="border-1 px-3 py-2 mt-2  me-5 fs-6 fw-normal text-white border-2" style={{color: "black", backgroundColor: "#272a30"}} onClick={() => navigate('/login')}><FontAwesomeIcon icon={faKey}/>Log in</button>
                 </div>
                 </div>
                 </div>
             )}
+            <RegisterModal
+            show={show2}
+            onClose={close2}
+            onSubmit={handleSubmit3}
+            />
             <br/>
             <div className="d-flex justify-content-between text-white  fs-5 mx-auto  container"  >
                 <div className="border-1 border  home_tool w-100 align-items-start d-flex ps-3">

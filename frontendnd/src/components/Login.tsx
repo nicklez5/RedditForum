@@ -95,7 +95,7 @@ const Login = () => {
                     </div>
                     
                 </Form.Group>
-                <button className="rounded-5 border-0 p-2 align-items-start justify-content-start d-flex " onClick={() => navigate('/forgotPassword')}>
+                <button   type="button" className="rounded-5 border-0 p-2 align-items-start justify-content-start d-flex " onClick={() => navigate('/forgotPassword')}>
                     Forgot Password?
                 </button>
                 <br/>
@@ -107,7 +107,7 @@ const Login = () => {
                 </div>
                 <br/>
                 <span className="text-white">Dont have an account? </span>
-                <button className="border-1 rounded-2 px-3 py-2 mt-2 fs-6 fw-normal opacity-75" style={{color: "black"}} onClick={open}><FontAwesomeIcon icon={faPlus}/>Register Now</button>
+                <button  type="button"  className="border-1 rounded-2 px-3 py-2 mt-2 fs-6 fw-normal opacity-75" style={{color: "black"}} onClick={open}><FontAwesomeIcon icon={faPlus}/>Register Now</button>
                 
             </Form>
             <RegisterModal
