@@ -18,6 +18,7 @@ public class ThreadDto
     public string? AuthorId { get; set; }
     public string AuthorUsername { get; set; } = string.Empty;
 
+    public string? AuthorProfileImageUrl { get; set; }
     public int PostCount { get; set; }
 
     public int LikeCount { get; set; }
