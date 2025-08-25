@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.6.4" />
+    <PackageReference Include="MailKit" Version="4.13.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
@@ -27,13 +28,13 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
   </ItemGroup>
    <!-- Build React client and copy to wwwroot -->
-<Target Name="BuildClient" AfterTargets="Publish" Condition="'$(SkipClientBuild)'!='true' AND Exists('$(MSBuildProjectDirectory)/../FrontEnd/package.json')">
-  <Message Text="Building client in $(MSBuildProjectDirectory)/../FrontEnd" Importance="high" />
-  <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />
-  <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)/../FrontEnd" />
+<Target Name="BuildClient" AfterTargets="Publish" Condition="'$(SkipClientBuild)'!='true' AND Exists('$(MSBuildProjectDirectory)/../frontendnd/package.json')">
+  <Message Text="Building client in $(MSBuildProjectDirectory)/../frontendnd" Importance="high" />
+  <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)/../frontendnd" />
+  <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)/../frontendnd" />
 
   <ItemGroup>
-    <ClientBuildFiles Include="$(MSBuildProjectDirectory)/../FrontEnd/build/**" />
+    <ClientBuildFiles Include="$(MSBuildProjectDirectory)/../frontendnd/build/**" />
   </ItemGroup>
 
   <RemoveDir Directories="$(MSBuildProjectDirectory)/wwwroot" />
