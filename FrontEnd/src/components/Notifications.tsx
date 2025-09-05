@@ -45,7 +45,7 @@ const Notifications = () => {
         await fetchNotifications();
     } 
     return (
-        <div className="container my-4" >
+        <div className="container my-4 mt-4" >
             <h2 className="mt-xxl-5">Notifications</h2>
             {loading && <Spinner animation="border" />}
             {error && <Alert variant="danger">{error}</Alert>}
