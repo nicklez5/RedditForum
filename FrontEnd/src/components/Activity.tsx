@@ -148,7 +148,7 @@ const ActivityPage = () => {
                     ))}
                 </ul>
             </div>
-            <div className="col card shadow-sm" style={{maxHeight: "100%", height: "70vh"}}>
+            <div className="col card shadow-sm mt-5" style={{maxHeight: "100%", height: "70vh"}}>
                 <div>
                 <p className="text-center fs-1 font-monospace">Welcome {selectedProfile!.username}</p>
                 </div>
